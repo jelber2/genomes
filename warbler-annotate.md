@@ -488,7 +488,7 @@ else
 fi
 ```
 
-run ``annotate-vertebrate-no-rnaseq-repeatmodeler.sh` with exported variables
+run `annotate-vertebrate-no-rnaseq-repeatmodeler.sh` with exported variables
 
 ```bash
 cd /genetics/elbers/warbler2
