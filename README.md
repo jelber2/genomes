@@ -7,4 +7,4 @@ assembly:
 
 annotation:
 
-![spotted-flesh fly](https://github.com/jelber2/genomes/blob/main/fly-annotation.md)
+![garden warbler](https://github.com/jelber2/genomes/blob/main/warbler-annotation.md)
