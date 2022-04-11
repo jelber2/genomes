@@ -7,4 +7,4 @@ assembly:
 
 annotation:
 
-![garden warbler](https://github.com/jelber2/genomes/blob/main/warbler-annotation.md)
+![garden warbler](https://github.com/jelber2/genomes/blob/main/warbler-annotate.md)
