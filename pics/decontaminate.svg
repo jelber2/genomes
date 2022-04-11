@@ -12,8 +12,8 @@
 <!-- 0 -->
 <g id="node1" class="node">
 <title>0</title>
-<path fill="none" stroke="#56a2d8" stroke-width="2" d="M202,-36C202,-36 172,-36 172,-36 166,-36 160,-30 160,-24 160,-24 160,-12 160,-12 160,-6 166,0 172,0 172,0 202,0 202,0 208,0 214,-6 214,-12 214,-12 214,-24 214,-24 214,-30 208,-36 202,-36"/>
-<text text-anchor="middle" x="187" y="-15.5" font-family="sans" font-size="10.00">all</text>
+<path fill="none" stroke="#56a2d8" stroke-width="2" d="M256,-36C256,-36 118,-36 118,-36 112,-36 106,-30 106,-24 106,-24 106,-12 106,-12 106,-6 112,0 118,0 118,0 256,0 256,0 262,0 268,-6 268,-12 268,-12 268,-24 268,-24 268,-30 262,-36 256,-36"/>
+<text text-anchor="middle" x="187" y="-15.5" font-family="sans" font-size="10.00">HiFi reads ready for assembly</text>
 </g>
 <!-- 1 -->
 <g id="node2" class="node">
@@ -35,7 +35,7 @@
 <title>2</title>
 <path fill="none" stroke="#78d856" stroke-width="2" d="M367,-494C367,-494 77,-494 77,-494 71,-494 65,-488 65,-482 65,-482 65,-465 65,-465 65,-459 71,-453 77,-453 77,-453 367,-453 367,-453 373,-453 379,-459 379,-465 379,-465 379,-482 379,-482 379,-488 373,-494 367,-494"/>
 <text text-anchor="middle" x="222" y="-482" font-family="sans" font-size="10.00">remove left over SMRTbell adapters </text>
-<text text-anchor="middle" x="222" y="-471" font-family="sans" font-size="10.00">and removed inverted repeats with icecreamfinder.sh </text>
+<text text-anchor="middle" x="222" y="-471" font-family="sans" font-size="10.00">and remove inverted repeats with icecreamfinder.sh </text>
 <text text-anchor="middle" x="222" y="-460" font-family="sans" font-size="10.00">from BBMap/BBTools https://sourceforge.net/projects/bbmap/</text>
 </g>
 <!-- 2&#45;&gt;1 -->
