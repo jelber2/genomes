@@ -12,8 +12,8 @@
 <!-- 0 -->
 <g id="node1" class="node">
 <title>0</title>
-<path fill="none" stroke="#afd856" stroke-width="2" d="M231,-36C231,-36 134,-36 134,-36 128,-36 122,-30 122,-24 122,-24 122,-12 122,-12 122,-6 128,0 134,0 134,0 231,0 231,0 237,0 243,-6 243,-12 243,-12 243,-24 243,-24 243,-30 237,-36 231,-36"/>
-<text text-anchor="middle" x="182.5" y="-15.5" font-family="sans" font-size="10.00">evaluate&#45;annotations</text>
+<path fill="none" stroke="#afd856" stroke-width="2" d="M252.5,-36C252.5,-36 112.5,-36 112.5,-36 106.5,-36 100.5,-30 100.5,-24 100.5,-24 100.5,-12 100.5,-12 100.5,-6 106.5,0 112.5,0 112.5,0 252.5,0 252.5,0 258.5,0 264.5,-6 264.5,-12 264.5,-12 264.5,-24 264.5,-24 264.5,-30 258.5,-36 252.5,-36"/>
+<text text-anchor="middle" x="182.5" y="-15.5" font-family="sans" font-size="10.00">ready to evaluate annotations</text>
 </g>
 <!-- 1 -->
 <g id="node2" class="node">
