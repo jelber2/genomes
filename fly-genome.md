@@ -1029,6 +1029,7 @@ test.purged  17687       762435740  0.0000   63.8 # estimated quality value
 ```
 
 ![spectra-plot](https://github.com/jelber2/genomes/blob/main/pics/merqury.fk.test.purged.spectra-cn.fl.svg)
+
 Copy number spectra plot of 56-mers against the genome
 showing very high heterozygosity and good collapsing of haplotypes
 
