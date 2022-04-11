@@ -2,7 +2,8 @@
 Example of genome annotation script with genome, proteins from related-species,
  and without species-specific RNAseq reads
 
-Diagram of what `annotate-vertebrate-no-rnaseq-repeatmodeler.sh`
+Diagram of what `annotate-vertebrate-no-rnaseq-repeatmodeler.sh` is doing
+
 ![annotate-no-rnaseq](https://github.com/jelber2/genomes/blob/main/pics/annotate-no-rnaseq.svg)
 
 `annotate-vertebrate-no-rnaseq-repeatmodeler.sh`
