@@ -745,7 +745,7 @@ rule minimap2_reads:
             module load compression-tools/20220329
             module load minimap2/2.24
             minimap2 -t {THREADS} --secondary=no -k19 -w10 -O5,56 -E4,1 -A2 -B5 -z400,50 -r2000 \
-            -g5000 {input.ref} {input.reads} | pigz -p 34 -c - > {output}
+            -g5000 {input.ref} {input.reads} | pigz -p {THREADS} -c - > {output}
             """
 
 # get coverage
