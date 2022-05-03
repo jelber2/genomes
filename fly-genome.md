@@ -931,7 +931,7 @@ READS1=expand(["{id}/pg_asm4/4_{threads2}.fa"], id=IDS, threads2=THREADS4)
 REFERENCE1=expand(["{id}/pg_asm4/test.purged.fa"], id=IDS)
 
 READS2=expand(["{id}/pg_asm4/4_{threads2}"], id=IDS, threads2=THREADS4)
-REFERENCE2=expand(["{id}/pg_asm4/test.purged"], id=IDS)
+REFERENCE2="test.purged"
 
 # list of rules which are not deployed to slurm
 localrules: all
@@ -973,9 +973,12 @@ rule merquryfk:
             if [ `which MerquryFk |wc -l` -eq 0 ]
             then
                 export "PATH=/nfs/scistore16/itgrp/jelbers/bin/MERQURY.FK:$PATH"
-                MerquryFK -v -f -pdf -P{params} {params}reads {REFERENCE2} merqury.fk
+                export "PATH=/nfs/scistore16/itgrp/jelbers/bin/FASTK-1.0:$PATH"
+                cd {params}
+                MerquryFK -v -f -pdf -P./ reads {REFERENCE2} merqury.fk
             else
-                MerquryFK -v -f -pdf -P{params} {params}reads {REFERENCE2} merqury.fk
+                cd {params}
+                MerquryFK -v -f -pdf -P./ reads {REFERENCE2} merqury.fk
              fi
              """
 ```
