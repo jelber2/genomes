@@ -885,25 +885,54 @@ snakemake -j 10 --snakefile merquryfk-snakefile \
 MerquryFK suggests the following
 
 ```bash
-cat HiFi-reads-rm-icecream-rm-contam5/pg_asm4/merqury.fk.completeness.stats | \
+cat reference/pg_asm4/merqury.fk.completeness.stats | \
 column -ts $'\t'
 
 Assembly     Region  Found      Total      % Covered
-test.purged  all     998492792  998510479  100.00
+test.purged  all     139289577  139289682  100.00
 
 # note that Found and Total are the number of 56-mers
 
-cat HiFi-reads-rm-icecream-rm-contam5/pg_asm4/merqury.fk.qv | \
+cat reference/pg_asm4/merqury.fk.qv | \
 column -ts $'\t'
 
 Assembly     No Support  Total      Error %  QV
-test.purged  17687       762435740  0.0000   63.8 # estimated quality value
+test.purged  105         146068892  0.0000   78.9 # estimated quality value
 
 # No Support and Total are values in bases
 ```
 
-![spectra-plot](https://github.com/jelber2/genomes/blob/main/pics/merqury.fk.test.purged.spectra-cn.fl.svg)
+Ok, so that is using the reads used for assembly to assess quality.\n
+What if we use perfect reads?
 
-Copy number spectra plot of 56-mers against the genome
-showing very high heterozygosity and good collapsing of haplotypes
+use BBTools/BBMap 38.82 (https://sourceforge.net/projects/bbmap/)
+to simulate 9000-12000 bp reads at 15x coverage that have no errors against the original chr8 assembly
+```bash
+randomreads.sh ow=t seed=1 ref=GCA_016894425.1_ASM1689442v1_genomic_upper.fasta illuminanames=t pacbio=t pbmin=0 pbmax=0 coverage=15 paired=f gaussianlength=t minlength=9000 midlength=10000 maxlength=12000 out=merquryfk/perfect-hifi.fasta.gz 2>/dev/null &
+```
 
+Use FastK to count 56-mers
+```bash
+cd merquryfk
+FastK -P./ -T34 -t1 -k56 -p -Nreads -v perfect-hifi
+```
+
+Run MerquryFK to assess quality of de novo assembly using perfect reads
+```bash
+ln -s ../reference/pg_asm4/test.purged.fa pg_asm3x-purge_dups.fasta
+MerquryFK -v -f -pdf -P./ reads pg_asm3x-purge_dups pg_asm3x-purge_dups
+```
+
+```bash
+# completeness
+column -ts $'\t' pg_asm3x-purge_dups.completeness.stats
+
+Assembly             Region  Found      Total      % Covered
+pg_asm3x-purge_dups  all     139282167  139282896  100.00
+
+# quality value
+column -ts $'\t' pg_asm3x-purge_dups.qv
+
+Assembly             No Support  Total      Error %  QV
+pg_asm3x-purge_dups  731         146068892  0.0000   70.5
+```
