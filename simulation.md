@@ -900,8 +900,8 @@ test.purged  105         146068892  0.0000   78.9 # estimated quality value
 # No Support and Total are values in bases
 ```
 
-Ok, so that is using the reads used for assembly to assess quality.\n
-What if we use perfect reads?
+# Ok, so that is using the reads used for assembly to assess quality.
+# What if we use perfect reads?
 
 use BBTools/BBMap 38.82 (https://sourceforge.net/projects/bbmap/)
 to simulate 9000-12000 bp reads at 15x coverage that have no errors against the original chr8 assembly
