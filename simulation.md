@@ -17,12 +17,11 @@ wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/016/894/425/GCA_016894425.1_AS
 export PATH="/nfs/scistore16/itgrp/jelbers/bin/FASTK-1.0:$PATH"
 export PATH="/nfs/scistore16/itgrp/jelbers/bin/MERQURY.FK:$PATH"
 export PATH="/nfs/scistore16/itgrp/jelbers/bin/HI.SIM:$PATH"
-
-
-THREADS=20
+```
 
 ### Count 40-mers with FastK and make them symmetric with Symmex
 ```bash
+THREADS=20
 FastK -k40 -T${THREADS} -P./ -N./Hifi -t1 -p -v HiFi-reads-rm-icecream-rm-contam5.fasta.gz > FastK.log 2>&1 &
 Symmex -P./ -v -T${THREADS} Hifi Hifi2 > Symmex.log 2>&1 &
 
@@ -41,10 +40,9 @@ cp Hifi.hist Hifi2.hist
 ### Run HImodel and HIsim
 ```bash
 HImodel -v -T${THREADS} -v -g2:51 -e2 -oHifi2 Hifi2 > HImodel.log 2>&1 &
-HIsim GCA_016894425.1_ASM1689442v1_genomic_upper Hifi2 -oreference -h -e -f -c50 -m10000 -s1000 -x1000 -v -C -U -r1 > HIsim.log 2>&1 &
+HIsim GCA_016894425.1_ASM1689442v1_genomic_upper Hifi2 -oreference -h -e \
+-f -c50 -m10000 -s1000 -x1000 -v -C -U -r1 > HIsim.log 2>&1 &
 ```
-
-
 
 ## Step 2 - assembly of QC'd HiFi reads
 
@@ -908,7 +906,9 @@ What if we use perfect reads?
 use BBTools/BBMap 38.82 (https://sourceforge.net/projects/bbmap/)
 to simulate 9000-12000 bp reads at 15x coverage that have no errors against the original chr8 assembly
 ```bash
-randomreads.sh ow=t seed=1 ref=GCA_016894425.1_ASM1689442v1_genomic_upper.fasta illuminanames=t pacbio=t pbmin=0 pbmax=0 coverage=15 paired=f gaussianlength=t minlength=9000 midlength=10000 maxlength=12000 out=merquryfk/perfect-hifi.fasta.gz 2>/dev/null &
+randomreads.sh ow=t seed=1 ref=GCA_016894425.1_ASM1689442v1_genomic_upper.fasta illuminanames=t \
+pacbio=t pbmin=0 pbmax=0 coverage=15 paired=f gaussianlength=t minlength=9000 midlength=10000 \
+maxlength=12000 out=merquryfk/perfect-hifi.fasta.gz 2>/dev/null &
 ```
 
 Use FastK to count 56-mers
