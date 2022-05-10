@@ -936,3 +936,28 @@ column -ts $'\t' pg_asm3x-purge_dups.qv
 Assembly             No Support  Total      Error %  QV
 pg_asm3x-purge_dups  731         146068892  0.0000   70.5
 ```
+
+Instead of MerquryFK and FastK, let's try [YAK](https://github.com/lh3/yak)
+
+```bash
+# count 31-mers and discard singletons
+~/bin/yak/yak count -b37 -t32 -o perfect-hifi.fasta.yak perfect-hifi.fasta 2>/dev/null &
+
+# quality value estimation
+yak qv -t34 perfect-hifi.fasta.yak pg_asm3x-purge_dups.fasta > pg_asm3x-purge_dups.fasta.yak.qv.txt 2>/dev/null &
+
+# quality values and explanation
+head -n 4 pg_asm3x-purge_dups.fasta.yak.qv.txt && tail -n 4 pg_asm3x-purge_dups.fasta.yak.qv.txt
+
+CC	CT  kmer_occurrence    short_read_kmer_count  raw_input_kmer_count  adjusted_input_kmer_count
+CC	FR  fpr_lower_bound    fpr_upper_bound
+CC	ER  total_input_kmers  adjusted_error_kmers
+CC	CV  coverage
+FR	0	1
+ER	146068942	2737.287
+CV	1.000
+QV	58.510	62.186
+
+So QV is predicted between 58.510-62.186
+completeness/coverage is predicted to be 100 %
+```
