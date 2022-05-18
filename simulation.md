@@ -21,7 +21,7 @@ export PATH="/nfs/scistore16/itgrp/jelbers/bin/HI.SIM:$PATH"
 
 ### Count 40-mers with FastK and make them symmetric with Symmex
 ```bash
-THREADS=20
+THREADS=34
 FastK -k40 -T${THREADS} -P./ -N./Hifi -t1 -p -v HiFi-reads-rm-icecream-rm-contam5.fasta.gz > FastK.log 2>&1 &
 Symmex -P./ -v -T${THREADS} Hifi Hifi2 > Symmex.log 2>&1 &
 
@@ -61,7 +61,7 @@ Will use peregrine-2021 pg_asm peregrine-r 0.4.13 (main:a95d696) (https://github
         "account": "jelbers",
         "mem": "100G",
         "time": "0:30:0",
-        "cores" : "48",
+        "cores" : "32",
         "job-name" : "{rule}",
         "partition" : "defaultp"
     },
@@ -144,7 +144,7 @@ shell.executable("/bin/bash")
 IDS, = glob_wildcards("raw-reads/{id}.fasta.gz")
 
 # set number of threads here
-THREADS=48
+THREADS=32
 THREADS2=range(1,THREADS+1)
 THREADS3=expand(["{threads}"], threads=THREADS2)
 THREADS4=[str(item).zfill(2) for item in THREADS3]
@@ -590,7 +590,7 @@ shell.executable("/bin/bash")
 # set number of threads here
 IDS, = glob_wildcards("raw-reads/{id}.fasta.gz")
 
-THREADS=48
+THREADS=32
 THREADS2=range(1,THREADS+1)
 THREADS3=expand(["{threads}"], threads=THREADS2)
 THREADS4=[str(item).zfill(2) for item in THREADS3]
@@ -747,7 +747,7 @@ actually run snakefile workflow
 snakemake -j 10 --snakefile purge_dups-snakefile \
 --printshellcmds --latency-wait 60 --local-cores 4 --cores all \
 --cluster "sbatch --export=NONE --no-requeue --job-name {rule} --mem=64g \
---time=1:00:00 --cpus-per-task=48 " all > purge_dups-snakefile.log 2>&1 &
+--time=1:00:00 --cpus-per-task=32 " all > purge_dups-snakefile.log 2>&1 &
 ```
 
 ## Step 4 evaluate purged assembly with k-mers
@@ -777,7 +777,7 @@ and MerquryFK (https://github.com/thegenemyers/MERQURY.FK)
         "account": "jelbers",
         "time": "0:30:0",
         "mem": "100G",
-        "cores" : "48",
+        "cores" : "32",
         "job-name" : "{rule}",
         "partition" : "defaultp"
     }
@@ -794,7 +794,7 @@ shell.executable("/bin/bash")
 IDS, = glob_wildcards("raw-reads/{id}.fasta.gz")
 
 # set number of threads here
-THREADS=48
+THREADS=32
 THREADS2=range(1,THREADS+1)
 THREADS3=expand(["{threads}"], threads=THREADS2)
 THREADS4=[str(item).zfill(2) for item in THREADS3]
