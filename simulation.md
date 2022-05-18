@@ -42,6 +42,8 @@ cp Hifi.hist Hifi2.hist
 HImodel -v -T${THREADS} -v -g2:51 -e2 -oHifi2 Hifi2 > HImodel.log 2>&1 &
 HIsim GCA_016894425.1_ASM1689442v1_genomic_upper Hifi2 -oreference -h -e \
 -f -c50 -m10000 -s1000 -x1000 -v -C -U -r1 > HIsim.log 2>&1 &
+mkdir -p raw-reads
+pigz -p 34 -kc reference.fasta > raw-reads/reference.fasta.gz
 ```
 
 ## Step 2 - assembly of QC'd HiFi reads
