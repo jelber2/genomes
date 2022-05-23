@@ -49,75 +49,75 @@ SHORTREADNAMES = [n.split('.')[0] for n in SHORTREADS]
 SHORTREADEXTENSIONS = ['.'.join(n.split('.')[1:]) for n in SHORTREADS]
 
 rule all:
-	input:
-		OUTDIR + "corrected.fa",
-		OUTDIR + "corrected_clipped.fa",
-		OUTDIR + "stats.txt"
+    input:
+        OUTDIR + "corrected.fa",
+        OUTDIR + "corrected_clipped.fa",
+        OUTDIR + "stats.txt"
 
 rule read_names:
-	input: expand(SHORTREADDIR + "{name}.{ext}", zip, name=SHORTREADNAMES, ext=SHORTREADEXTENSIONS)
-	output: temp("filenames")
-	shell: "readlink -f {input} > {output}"
+    input: expand(SHORTREADDIR + "{name}.{ext}", zip, name=SHORTREADNAMES, ext=SHORTREADEXTENSIONS)
+    output: temp("filenames")
+    shell: "readlink -f {input} > {output}"
 
 rule run_bcalm:
-	input: 
-		name = "filenames",
-		files = temp(expand(TMPDIR + "{name}.cor.{ext}", zip, name=SHORTREADNAMES, ext=SHORTREADEXTENSIONS))
-	output: temp("filenames.unitigs.fa")
-	shadow: "full"
-	log:
-		stdout = TMPDIR + "bcalm_stdout.txt",
-		stderr = TMPDIR + "bcalm_stderr.txt"
-	threads: 40
-	shell: "/usr/bin/time -v {BCALMPATH} -nb-cores {threads} -in {input.name} -kmer-size {BIGK} -abundance-min {ABUNDANCE} > {log.stdout} 2> {log.stderr}"
+    input: 
+        name = "filenames",
+        files = temp(expand(TMPDIR + "{name}.cor.{ext}", zip, name=SHORTREADNAMES, ext=SHORTREADEXTENSIONS))
+    output: temp("filenames.unitigs.fa")
+    shadow: "full"
+    log:
+        stdout = TMPDIR + "bcalm_stdout.txt",
+        stderr = TMPDIR + "bcalm_stderr.txt"
+    threads: 40
+    shell: "/usr/bin/time -v {BCALMPATH} -nb-cores {threads} -in {input.name} -kmer-size {BIGK} -abundance-min {ABUNDANCE} > {log.stdout} 2> {log.stderr}"
 
 rule convert_bcalm:
-	input: rules.run_bcalm.output
-	output: TMPDIR + "graph.gfa"
-	shell: "{BCALMCONVERTPATH} {input} {output} {BIGK}"
+    input: rules.run_bcalm.output
+    output: TMPDIR + "graph.gfa"
+    shell: "{BCALMCONVERTPATH} {input} {output} {BIGK}"
 
 rule align_reads:
-	input:
-		graph = TMPDIR + "graph.gfa",
-		reads = expand(LONGREADDIR + "{name}", name=LONGREADS)
-	params:
-		readconcat = lambda wildcards, input: ' '.join(input.reads)
-	output:
-		corrected = OUTDIR + "corrected.fa",
-		clipped = OUTDIR + "corrected_clipped.fa"
-	log:
-		stdout = TMPDIR + "aligner_stdout.txt",
-		stderr = TMPDIR + "aligner_stderr.txt"
-	threads: 40
-	shell:
-		"/usr/bin/time -v {GRAPHALIGNERPATH} -g {input.graph} --corrected-out {output.corrected} --corrected-clipped-out {output.clipped} -f {params.readconcat} -t {threads} {GRAPHALIGNERPARAMS} 1> {log.stdout} 2> {log.stderr}"
+    input:
+        graph = TMPDIR + "graph.gfa",
+        reads = expand(LONGREADDIR + "{name}", name=LONGREADS)
+    params:
+        readconcat = lambda wildcards, input: ' '.join(input.reads)
+    output:
+        corrected = OUTDIR + "corrected.fa",
+        clipped = OUTDIR + "corrected_clipped.fa"
+    log:
+        stdout = TMPDIR + "aligner_stdout.txt",
+        stderr = TMPDIR + "aligner_stderr.txt"
+    threads: 40
+    shell:
+        "/usr/bin/time -v {GRAPHALIGNERPATH} -g {input.graph} --corrected-out {output.corrected} --corrected-clipped-out {output.clipped} -f {params.readconcat} -t {threads} {GRAPHALIGNERPARAMS} 1> {log.stdout} 2> {log.stderr}"
 
 rule get_stats:
-	input:
-		aligner_stdout = TMPDIR + "aligner_stdout.txt",
-		aligner_stderr = TMPDIR + "aligner_stderr.txt",
-		bcalm_stdout = TMPDIR + "bcalm_stdout.txt",
-		bcalm_stderr = TMPDIR + "bcalm_stderr.txt",
-		lighter_stdout = TMPDIR + "lighter_stdout.txt",
-		lighter_stderr = TMPDIR + "lighter_stderr.txt"
-	output:
-		OUTDIR + "stats.txt"
-	run:
-		shell("grep 'Input reads' < {input.aligner_stdout} >> {output}")
-		shell("grep 'Reads with a seed' < {input.aligner_stdout} >> {output}")
-		shell("grep 'Reads with an alignment' < {input.aligner_stdout} >> {output}")
-		shell("grep 'Alignments' < {input.aligner_stdout} >> {output}")
-		shell("grep 'End-to-end alignments' < {input.aligner_stdout} >> {output}")
-		shell("echo 'BCalm' >> {output}"),
-		shell("grep 'User time' < {input.bcalm_stderr} >> {output}")
-		shell("grep 'System time' < {input.bcalm_stderr} >> {output}")
-		shell("grep 'Elapsed (wall clock)' < {input.bcalm_stderr} >> {output}")
-		shell("grep 'Maximum resident set size' < {input.bcalm_stderr} >> {output}")
-		shell("echo 'Aligner' >> {output}"),
-		shell("grep 'User time' < {input.aligner_stderr} >> {output}")
-		shell("grep 'System time' < {input.aligner_stderr} >> {output}")
-		shell("grep 'Elapsed (wall clock)' < {input.aligner_stderr} >> {output}")
-		shell("grep 'Maximum resident set size' < {input.aligner_stderr} >> {output}")
+    input:
+        aligner_stdout = TMPDIR + "aligner_stdout.txt",
+        aligner_stderr = TMPDIR + "aligner_stderr.txt",
+        bcalm_stdout = TMPDIR + "bcalm_stdout.txt",
+        bcalm_stderr = TMPDIR + "bcalm_stderr.txt",
+        lighter_stdout = TMPDIR + "lighter_stdout.txt",
+        lighter_stderr = TMPDIR + "lighter_stderr.txt"
+    output:
+        OUTDIR + "stats.txt"
+    run:
+        shell("grep 'Input reads' < {input.aligner_stdout} >> {output}")
+        shell("grep 'Reads with a seed' < {input.aligner_stdout} >> {output}")
+        shell("grep 'Reads with an alignment' < {input.aligner_stdout} >> {output}")
+        shell("grep 'Alignments' < {input.aligner_stdout} >> {output}")
+        shell("grep 'End-to-end alignments' < {input.aligner_stdout} >> {output}")
+        shell("echo 'BCalm' >> {output}"),
+        shell("grep 'User time' < {input.bcalm_stderr} >> {output}")
+        shell("grep 'System time' < {input.bcalm_stderr} >> {output}")
+        shell("grep 'Elapsed (wall clock)' < {input.bcalm_stderr} >> {output}")
+        shell("grep 'Maximum resident set size' < {input.bcalm_stderr} >> {output}")
+        shell("echo 'Aligner' >> {output}"),
+        shell("grep 'User time' < {input.aligner_stderr} >> {output}")
+        shell("grep 'System time' < {input.aligner_stderr} >> {output}")
+        shell("grep 'Elapsed (wall clock)' < {input.aligner_stderr} >> {output}")
+        shell("grep 'Maximum resident set size' < {input.aligner_stderr} >> {output}")
 ```
 
 config.yaml
