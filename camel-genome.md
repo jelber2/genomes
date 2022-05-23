@@ -622,5 +622,5 @@ QV	36.119	36.394
 ```
 
 ## Let's view the HiC contact map made with Juicebox
-the first iteration of yahs from make .hic file yahs iteration 1 step
+the first iteration of yahs from ![make .hic file yahs iteration 1 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#scaffold-with-yahs-yahs-iteration-1-step)
 ![yahs1](https://github.com/jelber2/genomes/blob/main/pics/yahs1.svg)
