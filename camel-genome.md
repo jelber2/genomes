@@ -294,6 +294,8 @@ samtools faidx camel2.dustmasker.fasta
 
 bwa-mem2 index camel2.dustmasker.fasta camel2.dustmasker.fasta > bwa-mem2-index.log 2>&1 &
 
+# filter_five_end.pl comes from - https://github.com/ArimaGenomics/mapping_pipeline/
+
 bwa-mem2 mem -t 48 camel2.dustmasker.fasta <(zcat hi-c-lib_00?_R1.fa.gz) | \
 perl /nfs/scistore16/itgrp/jelbers/bin/mapping_pipeline/filter_five_end.pl | \
 samtools view -@48 -Sb - > hi-c1-2.bam
