@@ -702,7 +702,54 @@ cut -f 1-2 yahs2/yahs.out_scaffolds_final.fa.fai > yahs2/scaffolds_final.chrom.s
 sbatch hic2.file.slurm
 ```
 
-## get assembly statistics for yahs1 and yahs2 iterations
+## get assembly statistics for yahs1 and yahs2 iterations and pre-scaffolding assemblies
+
+camel2.fasta (error-corrected pacbio reads assembled with flye --pac-corr option)
+
+```bash
+~/bin/bbmap-38.94/bbstats.sh camel2.fasta -Xmx10g
+A	C	G	T	N	IUPAC	Other	GC	GC_stdev
+0.2928	0.2076	0.2074	0.2922	0.0000	0.0000	0.0001	0.4150	0.0708
+
+Main genome scaffold total:         	2742
+Main genome contig total:           	2742
+Main genome scaffold sequence total:	2030.646 MB
+Main genome contig sequence total:  	2030.646 MB  	0.000% gap
+Main genome scaffold N/L50:         	173/3.549 MB
+Main genome contig N/L50:           	173/3.549 MB
+Main genome scaffold N/L90:         	628/797.735 KB
+Main genome contig N/L90:           	628/797.735 KB
+Max scaffold length:                	20.748 MB
+Max contig length:                  	20.748 MB
+Number of scaffolds > 50 KB:        	1308
+% main genome in scaffolds > 50 KB: 	99.11%
+
+
+Minimum 	Number        	Number        	Total         	Total         	Scaffold
+Scaffold	of            	of            	Scaffold      	Contig        	Contig  
+Length  	Scaffolds     	Contigs       	Length        	Length        	Coverage
+--------	--------------	--------------	--------------	--------------	--------
+    All 	         2,742	         2,742	 2,030,645,542	 2,030,645,542	 100.00%
+    100 	         2,742	         2,742	 2,030,645,542	 2,030,645,542	 100.00%
+    250 	         2,741	         2,741	 2,030,645,350	 2,030,645,350	 100.00%
+    500 	         2,733	         2,733	 2,030,642,059	 2,030,642,059	 100.00%
+   1 KB 	         2,611	         2,611	 2,030,555,600	 2,030,555,600	 100.00%
+ 2.5 KB 	         2,399	         2,399	 2,030,207,639	 2,030,207,639	 100.00%
+   5 KB 	         2,197	         2,197	 2,029,463,149	 2,029,463,149	 100.00%
+  10 KB 	         1,933	         1,933	 2,027,522,375	 2,027,522,375	 100.00%
+  25 KB 	         1,563	         1,563	 2,021,692,341	 2,021,692,341	 100.00%
+  50 KB 	         1,308	         1,308	 2,012,565,072	 2,012,565,072	 100.00%
+ 100 KB 	         1,118	         1,118	 1,998,995,638	 1,998,995,638	 100.00%
+ 250 KB 	           911	           911	 1,966,037,932	 1,966,037,932	 100.00%
+ 500 KB 	           761	           761	 1,912,592,259	 1,912,592,259	 100.00%
+   1 MB 	           559	           559	 1,766,857,984	 1,766,857,984	 100.00%
+ 2.5 MB 	           266	           266	 1,289,900,333	 1,289,900,333	 100.00%
+   5 MB 	            90	            90	   665,897,535	   665,897,535	 100.00%
+  10 MB 	            11	            11	   149,096,641	   149,096,641	 100.00%
+```
+
+yahs1 (scaffolded camel2.fasta using yahs and Hi-C reads)
+
 ```bash
 ~/bin/bbmap-38.94/bbstats.sh yahs1.chromosomes.fasta -Xmx10g
 
@@ -749,6 +796,7 @@ Length  	Scaffolds     	Contigs       	Length        	Length        	Coverage
  100 MB 	             5	           372	   731,992,790	   731,902,051	  99.99%
 ```
 
+yahs2 (re-scaffolded yahs1 assembly)
 ```bash 
  ~/bin/bbmap-38.94/bbstats.sh yahs.out_scaffolds_final.fa -Xmx10g
 
