@@ -845,6 +845,7 @@ Length  	Scaffolds     	Contigs       	Length        	Length        	Coverage
 
 ## get assembly quality value estimates
 ### use yak (https://github.com/lh3/yak)
+first assembly without error-correction by correcting SNPs/indels called with octopus
 ```bash
 /nfs/scistore16/itgrp/jelbers/bin/yak/yak count -b37 -t96 -o sr.yak <(zcat SRR2002493_?.fastq.gz) <(zcat SRR2002493_?.fastq.gz)
 /nfs/scistore16/itgrp/jelbers/bin/yak/yak qv -t34 sr.yak camel.fasta > camel.fasta.qv.txt 2>/dev/null &
@@ -866,6 +867,7 @@ completeness/coverage is predicted to be 98.9 %
 ```
 
 ## get assembly quality value estimates using the error-corrected reference
+second assembly with SNPs/indels corrected by bcftools consensus based on octopus called variants
 ```bash
 /nfs/scistore16/itgrp/jelbers/bin/yak/yak qv -t34 sr.yak camel2.fasta > camel2.fasta.qv.txt 2>/dev/null &
 
