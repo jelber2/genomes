@@ -181,11 +181,12 @@ Date:   Fri Mar 25 15:03:28 2022 -0400
 
 cd ~/camel
 conda activate snakemake-7.3.6
-snakemake --cores 34 all
+snakemake --snakefile Snakefile-no-lighter --cores 34 all > error-correct2.log 2>&1 &
 ```
 
 ## convert lowercase to uppercase bases and remove comment lines from output of GraphAligner
 ```bash
+# https://github.com/lh3/seqtk
 ~/bin/seqtk/seqtk seq -UC output/corrected.fa > pacbio-GraphAligner-k67.fasta
 ```
 
