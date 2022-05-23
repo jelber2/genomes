@@ -1,7 +1,7 @@
 # Dromedary camel genome assembly
 
-## get raw pacbio read
-
+## get raw pacbio reads, (~11x haploid genome coverage)
+test.sh
 ```bash
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR763/002/SRR7637702/SRR7637702_subreads.fastq.gz
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR763/003/SRR7637703/SRR7637703_subreads.fastq.gz
@@ -14,7 +14,7 @@ wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR763/006/SRR7637706/SRR7637706_subread
 bash test.sh > test.sh.log
 ```
 
-## get error-corrected illumina reads
+## get error-corrected illumina reads (~65x haploid genome coverage)
 test2.sh
 ```bash
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR200/003/SRR2002493/SRR2002493_1.fastq.gz
@@ -239,6 +239,7 @@ samtools sort -@48 > SRR2002493-mapped-to-camel.fasta.bam
 ```
 
 ### error-correct camel.fasta step2
+### call SNPs/indels with octopus (https://github.com/luntergroup/octopus)
 ```bash
 unset SLURM_EXPORT_ENV
 module purge
@@ -253,6 +254,7 @@ samtools index -@96 SRR2002493-mapped-to-camel.fasta.bam
 ```
 
 ### error-correct camel.fasta step3
+### use VCF file to correct errors
 ```bash
 module load samtools/1.14
 module load bcftools/1.14
@@ -507,6 +509,8 @@ sbatch hic.file.slurm
 
 ## generate Hi-C contact matrix with hicexplorer against
 ## yahs assembly
+## do this in an automated way with snakePipes HiC
+## https://snakepipes.readthedocs.io/en/latest/content/workflows/HiC.html#hic
 ```bash
 . "/nfs/scistore16/itgrp/jelbers/miniconda3/etc/profile.d/conda.sh"
 conda activate snakePipes
@@ -533,6 +537,7 @@ yahs.out_scaffolds_final.chromosomes > HiC.log 2>&1
 ```
 
 ## get assembly quality value estimates
+### use yak (https://github.com/lh3/yak)
 ```bash
 /nfs/scistore16/itgrp/jelbers/bin/yak/yak count -b37 -t96 -o sr.yak <(zcat SRR2002493_?.fastq.gz) <(zcat SRR2002493_?.fastq.gz)
 /nfs/scistore16/itgrp/jelbers/bin/yak/yak qv -t34 sr.yak camel.fasta > camel.fasta.qv.txt 2>/dev/null &
