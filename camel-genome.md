@@ -1,5 +1,10 @@
 # Dromedary camel genome assembly
 
+## change directories
+```bash
+cd ~/camel
+```
+
 ## get raw pacbio reads, (~11x haploid genome coverage)
 test.sh
 ```bash
@@ -164,6 +169,17 @@ GraphAlignerParams: -x dbg
 
 ## run the correction
 ```bash
+# but first what version of GraphAligner is being used
+cd /nfs/scistore16/itgrp/jelbers/bin/GraphAligner/bin/GraphAligner
+git show
+
+commit cf7f5dbaab1e852d4a2e0c5834f56c1b49424b04 (HEAD -> master, tag: v1.0.16-osx, origin/master, origin/HEAD)
+Author: Mikko Rautiainen <m_rautiainen@hotmail.com>
+Date:   Fri Mar 25 15:03:28 2022 -0400
+
+    correct mxm library in readme
+
+cd ~/camel
 conda activate snakemake-7.3.6
 snakemake --cores 34 all
 ```
@@ -251,10 +267,21 @@ samtools index -@96 SRR2002493-mapped-to-camel.fasta.bam
 /nfs/scistore16/itgrp/jelbers/bin/octopus/bin/octopus --temp temp \
 -R camel.fasta -I SRR2002493-mapped-to-camel.fasta.bam \
 -o SRR2002493-mapped-to-camel.fasta.bam.vcf --threads 96 --organism-ploidy 2
+
+# note on octopus version
+cd /nfs/scistore16/itgrp/jelbers/bin/octopus/
+git show
+
+commit 6797d8dbff78fff0900a83b2d9a3886b52602852 (HEAD -> develop, origin/develop, origin/HEAD)
+Author: Daniel Cooke <daniel.cooke@invitae.com>
+Date:   Fri Feb 4 12:19:06 2022 -0300
+
+    Switch to pure Ubuntu 21.10 apt-get Docker image
+
 ```
 
 ### error-correct camel.fasta step3
-### use VCF file to correct errors
+### use octopus filtered VCF file to correct errors
 ```bash
 module load samtools/1.14
 module load bcftools/1.14
@@ -272,6 +299,7 @@ samtools faidx camel2.fasta
 ```
 
 ## map reads with bwa-mem2 to dustmasked genome
+### I thought dustmasking would help with repetitive regions
 ```bash
 module load bwa-mem2/2.2.1
 module load samtools/1.14
