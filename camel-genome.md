@@ -566,6 +566,235 @@ HiC \
 yahs.out_scaffolds_final.chromosomes > HiC.log 2>&1
 ```
 
+## scaffold with yahs for iteration 2
+```bash
+# yahs version
+cd ~/git/yahs
+git show
+
+commit e19065aa429439fc8c829687cdb5109355bca159 (HEAD -> main, tag: 1.1a.2, origin/main, origin/HEAD)
+
+mkdir -p ~/camel/yahs2
+cd ~/camel/yahs2/
+ln -s ../yahs/yahs.out_scaffolds_final.chromosomes.fa yahs1.chromosomes.fasta
+module load samtools/1.14
+samtools faidx yahs1.chromosomes.fasta
+~/bin/yahs/yahs -e GATC -q 10 yahs1.chromosomes.fasta ../yahs/HiC/HiC_matrices/hic.bam > yahs2.log 2>&1 &
+```
+
+## assign chromosomes
+```
+cd ~/camel/yahs2/
+
+module load seqtk
+module load ncbi-blast/2.2.31+
+
+## first make a blastdb using BLAST 2.2.31+
+makeblastdb -dbtype nucl -in yahs.out_scaffolds_final.fa
+
+# rhmarkers/chr${i}rhmarkers.txt come from https://doi.org/10.5061/dryad.6rp36b6
+mkdir rhmarkers
+cd rhmarkers
+wget 'https://datadryad.org/stash/downloads/file_stream/64391' -O RH-alpaca-probe-sequences.zip
+unzip RH-alpaca-probe-sequences.zip
+# files are chr01rhmarkers.txt,...,chr36rhmarkers.txt,chrXrhmarkers.txt (really they are FASTA files and not text files)
+ls -1 chr*rhmarkers.txt|perl -pe "s/chr(\S+)rhmarkers.txt/\1/g" > samples
+
+# change back to working directory
+cd ..
+
+# do BLAST analysis
+while read i;do
+## third blast the markers for each chromosome using BLAST 2.2.31+
+blastn -num_threads 24 -db yahs.out_scaffolds_final.fa -query rhmarkers/chr${i}rhmarkers.txt -outfmt 6 \
+-max_hsps 1 -evalue 1e-30 > rhmarkers/chr${i}rhmarkers.txt.blast
+## fourth count the BLAST hits for contigs/scaffolds
+echo ${i} >> contigs-to-chromosomes.txt
+cut -f 2 rhmarkers/chr${i}rhmarkers.txt.blast |sort |uniq -c|sort -n |tail -n 1|perl -pe "s/( )+/\t/g" |perl -pe "s/^\t//g" |cut -f 2  >> contigs-to-chromosomes.txt
+done < rhmarkers/samples &
+
+## fifth modify numbers less than 9
+perl -pi -e "s/^0//g" contigs-to-chromosomes.txt
+
+## sixth make a copy of yahs2 assembly and rename it
+seqtk seq -l80 yahs.out_scaffolds_final.fa > yahs.out_scaffolds_final.chromosomes.fa
+
+##### MAKE SURE THERE ARE NO EMPTY LINES AT BEGINNING OF contigs-chromosomes.txt
+## example correct format:
+1
+Contig0
+2
+Contig1
+
+## seventh rename the contigs to chromosome names (takes about 1 hour)
+cat contigs-to-chromosomes.txt | while read -r ONE;do
+read -r TWO
+  perl -pi -e "s/>${TWO}\n/>${ONE}\n/" yahs.out_scaffolds_final.chromosomes.fa
+  echo $ONE >> test
+done &
+
+## eigth sort the chromosomes and contigs by number (ex: 1,2,3,4,X,Contig200,Contig201),
+##  then output 60 bases per line, then make all bases uppercase (no soft-masking)
+cat yahs.out_scaffolds_final.chromosomes.fa | seqtk seq -l0 | \
+paste - - |grep -vf <(cat rhmarkers/samples|perl -pe "s/^0//g"|perl -pe "s/^/>/g") > contigs
+
+cat yahs.out_scaffolds_final.chromosomes.fa | seqtk seq -l0 | \
+paste - - |grep -f <(cat rhmarkers/samples|perl -pe "s/^0//g"|perl -pe "s/^/>/g") |fgrep -v ">X" > chromosomes
+
+cat yahs.out_scaffolds_final.chromosomes.fa | seqtk seq -l0 | \
+paste - - |fgrep ">X" > Xchromosome
+
+cat chromosomes |sort -k 1.2 -n > tmp2 && mv tmp2 chromosomes
+cat contigs |sort -k 1.8 -n > tmp2 && mv tmp2 contigs
+
+cat chromosomes Xchromosome contigs | tr "\t" "\n" |seqtk seq -l60 -U > tmp2
+
+mv tmp2 yahs.out_scaffolds_final.chromosomes.fa
+
+## what percentage of the genome is not assigned to chromosomes
+fgrep -v ">" yahs.out_scaffolds_final.chromosomes.fa|wc -m
+
+2056285562
+
+cat chromosomes Xchromosome |cut -f 2|wc -m
+
+1801856829
+
+cat contigs |cut -f 2|wc -m
+
+229043303
+
+echo "229043303/2056285562*100"|bc -l
+
+11.13869139737703415300
+
+# 11.1 % not assigned to chromosomes
+```
+
+## make .hic file for yahs iteration 2 step
+
+hic2.file.slurm
+
+```bash
+#!/bin/bash
+#
+#SBATCH --job-name=hic
+#SBATCH -c 34
+#SBATCH --mem=200g
+#SBATCH --time=9:00:0
+#SBATCH --no-requeue
+#SBATCH --export=NONE
+unset SLURM_EXPORT_ENV
+module purge
+module load java
+module load samtools/1.14
+
+(/nfs/scistore16/itgrp/jelbers/bin/yahs/juicer_pre yahs2/yahs.out.bin yahs2/yahs.out_scaffolds_final.agp yahs2/yahs1.chromosomes.fasta.fai | sort -k2,2d -k6,6d -T ./ --parallel=34 -S32G | awk 'NF' > yahs2/alignments_sorted.txt.part) && (mv yahs2/alignments_sorted.txt.part yahs2/alignments_sorted.txt)
+wget -c https://github.com/aidenlab/Juicebox/releases/download/v.2.13.07/juicer_tools.jar
+
+samtools faidx yahs2/yahs.out_scaffolds_final.fa
+cut -f 1-2 yahs2/yahs.out_scaffolds_final.fa.fai > yahs2/scaffolds_final.chrom.sizes
+(java -jar -Xmx200G juicer_tools.jar pre --threads 34 yahs2/alignments_sorted.txt yahs2/out3.hic.part yahs2/scaffolds_final.chrom.sizes) && (mv yahs2/out3.hic.part yahs2/out3.hic) && (rm yahs2/alignments_sorted.txt)
+```
+
+## submit slurm job
+```bash
+sbatch hic2.file.slurm
+```
+
+## get assembly statistics for yahs1 and yahs2 iterations
+```bash
+~/bin/bbmap-38.94/bbstats.sh yahs1.chromosomes.fasta -Xmx10g
+
+A	C	G	T	N	IUPAC	Other	GC	GC_stdev
+0.2923	0.2075	0.2075	0.2927	0.0001	0.0000	0.0000	0.4150	0.0774
+
+Main genome scaffold total:         	1586
+Main genome contig total:           	2803
+Main genome scaffold sequence total:	2030.889 MB
+Main genome contig sequence total:  	2030.596 MB  	0.014% gap
+Main genome scaffold N/L50:         	9/68.131 MB
+Main genome contig N/L50:           	174/3.475 MB
+Main genome scaffold N/L90:         	33/11.321 MB
+Main genome contig N/L90:           	633/779.261 KB
+Max scaffold length:                	200.47 MB
+Max contig length:                  	20.748 MB
+Number of scaffolds > 50 KB:        	274
+% main genome in scaffolds > 50 KB: 	99.33%
+
+
+Minimum 	Number        	Number        	Total         	Total         	Scaffold
+Scaffold	of            	of            	Scaffold      	Contig        	Contig  
+Length  	Scaffolds     	Contigs       	Length        	Length        	Coverage
+--------	--------------	--------------	--------------	--------------	--------
+    All 	         1,586	         2,803	 2,030,888,942	 2,030,596,110	  99.99%
+    100 	         1,586	         2,803	 2,030,888,942	 2,030,596,110	  99.99%
+    250 	         1,585	         2,802	 2,030,888,750	 2,030,595,918	  99.99%
+    500 	         1,577	         2,794	 2,030,885,459	 2,030,592,627	  99.99%
+   1 KB 	         1,455	         2,672	 2,030,799,000	 2,030,506,177	  99.99%
+ 2.5 KB 	         1,240	         2,457	 2,030,448,039	 2,030,155,225	  99.99%
+   5 KB 	         1,037	         2,254	 2,029,699,549	 2,029,406,746	  99.99%
+  10 KB 	           772	         1,989	 2,027,749,775	 2,027,457,007	  99.99%
+  25 KB 	           422	         1,639	 2,022,395,450	 2,022,102,754	  99.99%
+  50 KB 	           274	         1,488	 2,017,184,385	 2,016,892,390	  99.99%
+ 100 KB 	           191	         1,387	 2,011,251,398	 2,010,963,113	  99.99%
+ 250 KB 	           112	         1,276	 1,998,810,889	 1,998,529,304	  99.99%
+ 500 KB 	            87	         1,204	 1,990,113,646	 1,989,841,721	  99.99%
+   1 MB 	            69	         1,145	 1,977,919,922	 1,977,656,539	  99.99%
+ 2.5 MB 	            55	         1,107	 1,955,477,947	 1,955,220,025	  99.99%
+   5 MB 	            44	         1,046	 1,915,227,002	 1,914,980,406	  99.99%
+  10 MB 	            33	           961	 1,832,933,154	 1,832,704,075	  99.99%
+  25 MB 	            21	           823	 1,616,825,718	 1,616,627,553	  99.99%
+  50 MB 	            15	           734	 1,427,374,327	 1,427,197,711	  99.99%
+ 100 MB 	             5	           372	   731,992,790	   731,902,051	  99.99%
+```
+
+```bash 
+ ~/bin/bbmap-38.94/bbstats.sh yahs.out_scaffolds_final.fa -Xmx10g
+
+A	C	G	T	N	IUPAC	Other	GC	GC_stdev
+0.2923	0.2075	0.2075	0.2927	0.0001	0.0000	0.0000	0.4150	0.0776
+
+Main genome scaffold total:         	1590
+Main genome contig total:           	2855
+Main genome scaffold sequence total:	2030.899 MB
+Main genome contig sequence total:  	2030.596 MB  	0.015% gap
+Main genome scaffold N/L50:         	11/68.131 MB
+Main genome contig N/L50:           	174/3.475 MB
+Main genome scaffold N/L90:         	33/19.126 MB
+Main genome contig N/L90:           	635/779.095 KB
+Max scaffold length:                	124.144 MB
+Max contig length:                  	20.748 MB
+Number of scaffolds > 50 KB:        	263
+% main genome in scaffolds > 50 KB: 	99.31%
+
+
+Minimum 	Number        	Number        	Total         	Total         	Scaffold
+Scaffold	of            	of            	Scaffold      	Contig        	Contig  
+Length  	Scaffolds     	Contigs       	Length        	Length        	Coverage
+--------	--------------	--------------	--------------	--------------	--------
+    All 	         1,590	         2,855	 2,030,898,542	 2,030,596,110	  99.99%
+    100 	         1,590	         2,855	 2,030,898,542	 2,030,596,110	  99.99%
+    250 	         1,589	         2,854	 2,030,898,350	 2,030,595,918	  99.99%
+    500 	         1,581	         2,846	 2,030,895,059	 2,030,592,627	  99.99%
+   1 KB 	         1,459	         2,724	 2,030,808,600	 2,030,506,177	  99.99%
+ 2.5 KB 	         1,243	         2,508	 2,030,456,639	 2,030,154,225	  99.99%
+   5 KB 	         1,040	         2,305	 2,029,708,149	 2,029,405,746	  99.99%
+  10 KB 	           774	         2,039	 2,027,750,375	 2,027,448,007	  99.99%
+  25 KB 	           417	         1,681	 2,022,255,152	 2,021,953,068	  99.99%
+  50 KB 	           263	         1,524	 2,016,878,244	 2,016,576,868	  99.99%
+ 100 KB 	           163	         1,404	 2,009,732,182	 2,009,434,931	  99.99%
+ 250 KB 	            98	         1,315	 1,999,689,854	 1,999,397,644	  99.99%
+ 500 KB 	            77	         1,255	 1,992,140,197	 1,991,856,022	  99.99%
+   1 MB 	            64	         1,215	 1,982,627,755	 1,982,349,228	  99.99%
+ 2.5 MB 	            52	         1,181	 1,962,849,063	 1,962,575,523	  99.99%
+   5 MB 	            44	         1,139	 1,932,638,975	 1,932,373,397	  99.99%
+  10 MB 	            37	         1,085	 1,879,539,021	 1,879,284,468	  99.99%
+  25 MB 	            25	           911	 1,652,712,350	 1,652,496,667	  99.99%
+  50 MB 	            17	           757	 1,385,733,105	 1,385,553,385	  99.99%
+ 100 MB 	             4	           219	   463,877,766	   463,824,343	  99.99%
+```
+
 ## get assembly quality value estimates
 ### use yak (https://github.com/lh3/yak)
 ```bash
@@ -608,6 +837,7 @@ completeness/coverage is predicted to be 99.3 %
 ```
 
 ## get quality values for the scaffolded assembly
+#### results are pretty much identical between yahs1 and yahs2 iterations
 ```bash
 /nfs/scistore16/itgrp/jelbers/bin/yak/yak qv -t34 ../sr.yak yahs.out_scaffolds_final.fa > yahs.out_scaffolds_final.qv 2> /dev/null
 head -n 4 yahs.out_scaffolds_final.qv && tail -n 5 yahs.out_scaffolds_final.qv 
@@ -625,3 +855,6 @@ QV	36.119	36.394
 ## Let's view the HiC contact map made with Juicebox
 the first iteration of yahs from ![make .hic file yahs iteration 1 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#scaffold-with-yahs-yahs-iteration-1-step)
 ![yahs1](https://github.com/jelber2/genomes/blob/main/pics/yahs1.svg)
+
+the second iteration of yahs from ![make .hic file yahs iteration 2 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#scaffold-with-yahs-yahs-iteration-2-step), will update tomorrow with picture
+![yahs2](https://github.com/jelber2/genomes/blob/main/pics/yahs2.svg)
