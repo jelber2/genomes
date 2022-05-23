@@ -373,7 +373,7 @@ rm -r partition/
 
 
 
-## scaffold with yahs
+## scaffold with yahs (yahs iteration 1 step)
 ```bash
 # yahs version
 cd ~/git/yahs
@@ -476,7 +476,7 @@ echo "277016954/2064737880*100"|bc -l
 # 13.4 % not assigned to chromosomes
 ```
 
-## make .hic file
+## make .hic file for yahs iteration 1 step
 
 hic.file.slurm
 
@@ -507,10 +507,10 @@ cut -f 1-2 yahs/yahs.out_scaffolds_final.fa.fai > yahs/scaffolds_final.chrom.siz
 sbatch hic.file.slurm
 ```
 
-## generate Hi-C contact matrix with hicexplorer against
-## yahs assembly
-## do this in an automated way with snakePipes HiC
-## https://snakepipes.readthedocs.io/en/latest/content/workflows/HiC.html#hic
+## generate another BAM file for yahs iteration 2
+### do this in an automated way with snakePipes HiC pipeline
+### https://snakepipes.readthedocs.io/en/latest/content/workflows/HiC.html#hic
+### with yahs iteration 1 and hi-c reads as input
 ```bash
 . "/nfs/scistore16/itgrp/jelbers/miniconda3/etc/profile.d/conda.sh"
 conda activate snakePipes
@@ -518,7 +518,6 @@ conda activate snakePipes
 # get FASTQ files in the working directory ~/camel/yahs
 cat ../hi-c-lib_00?_R1.fq.gz > hi-c_R1.fastq.gz
 cat ../hi-c-lib_00?_R2.fq.gz > hi-c_R2.fastq.gz
-
 
 createIndices --local -o ./ --tools bwa \
 --genomeURL /nfs/scistore16/itgrp/jelbers/camel/yahs/yahs.out_scaffolds_final.chromosomes.fa yahs.out_scaffolds_final.chromosomes > createIndices.log 2>&1
@@ -593,5 +592,5 @@ QV	36.119	36.394
 ```
 
 ## Let's view the HiC contact map made with Juicebox
-the first iteration of yahs
+the first iteration of yahs from make .hic file yahs iteration 1 step
 ![yahs1](https://github.com/jelber2/genomes/blob/main/pics/yahs1.svg)
