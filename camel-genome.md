@@ -702,6 +702,194 @@ cut -f 1-2 yahs2/yahs.out_scaffolds_final.fa.fai > yahs2/scaffolds_final.chrom.s
 sbatch hic2.file.slurm
 ```
 
+## let's trying adding the available Chicago reads for scaffolding
+test3.sh
+
+```bash
+wget -c https://www.dropbox.com/s/52kq6a9od8usdbo/chicago-lib_003_R2.fq.gz
+wget -c https://www.dropbox.com/s/e6lmcak6clhackc/chicago-lib_003_R1.fq.gz
+wget -c https://www.dropbox.com/s/xngwermnmm4n84q/chicago-lib_002_R2.fq.gz
+wget -c https://www.dropbox.com/s/1lwgr3sfbbyokcq/chicago-lib_002_R1.fq.gz
+wget -c https://www.dropbox.com/s/7yjlt0lax4oq1rh/chicago-lib_001_R2.fq.gz
+wget -c https://www.dropbox.com/s/vfn16yck7xohcnq/chicago-lib_001_R1.fq.gz
+wget -c https://www.dropbox.com/s/hbb2wsafqyt3tlr/chicago.md5sum
+md5sum --check chicago.md5sum
+```
+
+```bash
+bash test3.sh > test3.sh.log 2>&1
+```
+
+
+## generate another BAM file for yahs iteration 3
+### do this in an automated way with snakePipes HiC pipeline
+### https://snakepipes.readthedocs.io/en/latest/content/workflows/HiC.html#hic
+### with yahs iteration 2 and chicago and hi-c reads as input
+### note that I modified the snakePipes scripts for bwa-mem2 2.2.1 instead of bwa 0.7.17
+```bash
+cd ~/camel/yahs2/
+. "/nfs/scistore16/itgrp/jelbers/miniconda3/etc/profile.d/conda.sh"
+conda activate snakePipes
+
+# get FASTQ files in the working directory ~/camel/yahs2
+cat ../chicago-lib_00?_R1.fq.gz ../hi-c-lib_00?_R1.fq.gz > chicago_hic_R1.fastq.gz
+cat ../chicago-lib_00?_R2.fq.gz ../hi-c-lib_00?_R2.fq.gz > chicago_hic_R2.fastq.gz
+
+ln -fs yahs.out_scaffolds_final.chromosomes.fa yahs2.chromosomes.fasta
+
+createIndices --local -o ./ --tools bwa \
+--genomeURL /nfs/scistore16/itgrp/jelbers/camel/yahs2/yahs2.chromosomes.fasta yahs2.chromosomes > createIndices.log 2>&1
+
+HiC \
+--input-dir /nfs/scistore16/itgrp/jelbers/camel/yahs2 \
+--output-dir /nfs/scistore16/itgrp/jelbers/camel/yahs2/HiC \
+--configFile /nfs/scistore16/itgrp/jelbers/miniconda3/envs/snakePipes/lib/python3.10/site-packages/snakePipes/shared/defaults.yaml \
+--clusterConfigFile /nfs/scistore16/itgrp/jelbers/miniconda3/envs/snakePipes/lib/python3.10/site-packages/snakePipes/shared/cluster.yaml \
+--jobs 96 \
+--DAG \
+--enzyme DpnII \
+--noTAD \
+--snakemakeOptions='--printshellcmds' \
+yahs2.chromosomes > HiC.log 2>&1
+```
+
+## scaffold with yahs for iteration 3
+```bash
+# yahs version
+cd ~/git/yahs
+git show
+
+commit e19065aa429439fc8c829687cdb5109355bca159 (HEAD -> main, tag: 1.1a.2, origin/main, origin/HEAD)
+
+mkdir -p ~/camel/yahs3
+cd ~/camel/yahs3/
+ln -s ../yahs2/yahs.out_scaffolds_final.chromosomes.fa yahs2.chromosomes.fasta
+module load samtools/1.14
+samtools faidx yahs2.chromosomes.fasta
+~/bin/yahs/yahs -e GATC -q 10 yahs2.chromosomes.fasta ../yahs2/HiC/HiC_matrices/hic.bam > yahs3.log 2>&1 &
+```
+
+## assign chromosomes
+```
+cd ~/camel/yahs3/
+
+module load seqtk
+module load ncbi-blast/2.2.31+
+
+## first make a blastdb using BLAST 2.2.31+
+makeblastdb -dbtype nucl -in yahs.out_scaffolds_final.fa
+
+# rhmarkers/chr${i}rhmarkers.txt come from https://doi.org/10.5061/dryad.6rp36b6
+mkdir rhmarkers
+cd rhmarkers
+wget 'https://datadryad.org/stash/downloads/file_stream/64391' -O RH-alpaca-probe-sequences.zip
+unzip RH-alpaca-probe-sequences.zip
+# files are chr01rhmarkers.txt,...,chr36rhmarkers.txt,chrXrhmarkers.txt (really they are FASTA files and not text files)
+ls -1 chr*rhmarkers.txt|perl -pe "s/chr(\S+)rhmarkers.txt/\1/g" > samples
+
+# change back to working directory
+cd ..
+
+# do BLAST analysis
+while read i;do
+## third blast the markers for each chromosome using BLAST 2.2.31+
+blastn -num_threads 24 -db yahs.out_scaffolds_final.fa -query rhmarkers/chr${i}rhmarkers.txt -outfmt 6 \
+-max_hsps 1 -evalue 1e-30 > rhmarkers/chr${i}rhmarkers.txt.blast
+## fourth count the BLAST hits for contigs/scaffolds
+echo ${i} >> contigs-to-chromosomes.txt
+cut -f 2 rhmarkers/chr${i}rhmarkers.txt.blast |sort |uniq -c|sort -n |tail -n 1|perl -pe "s/( )+/\t/g" |perl -pe "s/^\t//g" |cut -f 2  >> contigs-to-chromosomes.txt
+done < rhmarkers/samples &
+
+## fifth modify numbers less than 9
+perl -pi -e "s/^0//g" contigs-to-chromosomes.txt
+
+## sixth make a copy of yahs2 assembly and rename it
+seqtk seq -l80 yahs.out_scaffolds_final.fa > yahs.out_scaffolds_final.chromosomes.fa
+
+##### MAKE SURE THERE ARE NO EMPTY LINES AT BEGINNING OF contigs-chromosomes.txt
+## example correct format:
+1
+Contig0
+2
+Contig1
+
+## seventh rename the contigs to chromosome names (takes about 1 hour)
+cat contigs-to-chromosomes.txt | while read -r ONE;do
+read -r TWO
+  perl -pi -e "s/>${TWO}\n/>${ONE}\n/" yahs.out_scaffolds_final.chromosomes.fa
+  echo $ONE >> test
+done &
+
+## eigth sort the chromosomes and contigs by number (ex: 1,2,3,4,X,Contig200,Contig201),
+##  then output 60 bases per line, then make all bases uppercase (no soft-masking)
+cat yahs.out_scaffolds_final.chromosomes.fa | seqtk seq -l0 | \
+paste - - |grep -vf <(cat rhmarkers/samples|perl -pe "s/^0//g"|perl -pe "s/^/>/g") > contigs
+
+cat yahs.out_scaffolds_final.chromosomes.fa | seqtk seq -l0 | \
+paste - - |grep -f <(cat rhmarkers/samples|perl -pe "s/^0//g"|perl -pe "s/^/>/g") |fgrep -v ">X" > chromosomes
+
+cat yahs.out_scaffolds_final.chromosomes.fa | seqtk seq -l0 | \
+paste - - |fgrep ">X" > Xchromosome
+
+cat chromosomes |sort -k 1.2 -n > tmp2 && mv tmp2 chromosomes
+cat contigs |sort -k 1.8 -n > tmp2 && mv tmp2 contigs
+
+cat chromosomes Xchromosome contigs | tr "\t" "\n" |seqtk seq -l60 -U > tmp2
+
+mv tmp2 yahs.out_scaffolds_final.chromosomes.fa
+
+## what percentage of the genome is not assigned to chromosomes
+fgrep -v ">" yahs.out_scaffolds_final.chromosomes.fa|wc -m
+
+# update size when ready
+
+cat chromosomes Xchromosome |cut -f 2|wc -m
+
+# update size when ready
+
+cat contigs |cut -f 2|wc -m
+
+# update size when ready
+
+# update size when ready echo "229043303/2056285562*100"|bc -l
+
+# update size when ready
+
+# # update size when ready % not assigned to chromosomes
+```
+
+## make .hic file for yahs iteration 3 step
+
+hic3.file.slurm
+
+```bash
+#!/bin/bash
+#
+#SBATCH --job-name=hic
+#SBATCH -c 34
+#SBATCH --mem=200g
+#SBATCH --time=9:00:0
+#SBATCH --no-requeue
+#SBATCH --export=NONE
+unset SLURM_EXPORT_ENV
+module purge
+module load java
+module load samtools/1.14
+
+(/nfs/scistore16/itgrp/jelbers/bin/yahs/juicer_pre yahs3/yahs.out.bin yahs3/yahs.out_scaffolds_final.agp yahs3/yahs2.chromosomes.fasta.fai | sort -k2,2d -k6,6d -T ./ --parallel=34 -S32G | awk 'NF' > yahs3/alignments_sorted.txt.part) && (mv yahs3/alignments_sorted.txt.part yahs3/alignments_sorted.txt)
+wget -c https://github.com/aidenlab/Juicebox/releases/download/v.2.13.07/juicer_tools.jar
+
+samtools faidx yahs3/yahs.out_scaffolds_final.fa
+cut -f 1-2 yahs3/yahs.out_scaffolds_final.fa.fai > yahs3/scaffolds_final.chrom.sizes
+(java -jar -Xmx200G juicer_tools.jar pre --threads 34 yahs3/alignments_sorted.txt yahs3/out4.hic.part yahs3/scaffolds_final.chrom.sizes) && (mv yahs3/out4.hic.part yahs3/out4.hic) && (rm yahs3/alignments_sorted.txt)
+```
+
+## submit slurm job
+```bash
+sbatch hic3.file.slurm
+```
+
+
 ## get assembly statistics for yahs1 and yahs2 iterations and pre-scaffolding assemblies
 
 camel2.fasta (error-corrected pacbio reads assembled with flye --pac-corr option)
@@ -908,3 +1096,6 @@ the first iteration of yahs from ![make .hic file yahs iteration 1 step](https:/
 
 the second iteration of yahs from ![make .hic file yahs iteration 2 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#make-hic-file-for-yahs-iteration-2-step)
 ![yahs2](https://github.com/jelber2/genomes/blob/main/pics/yahs2.svg)
+
+the third iteration of yahs from ![make .hic file yahs iteration 3 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#make-hic-file-for-yahs-iteration-3-step) , update tomorrow
+![yahs3](https://github.com/jelber2/genomes/blob/main/pics/yahs3.svg)
