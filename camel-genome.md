@@ -754,12 +754,16 @@ yahs2.chromosomes > HiC.log 2>&1
 ```
 
 ## scaffold with yahs for iteration 3
+### note: using newest yahs commit with a bug fix
 ```bash
 # yahs version
 cd ~/git/yahs
 git show
+commit f0803af1f347d32db79f2eb37350fc3a01506207 (HEAD -> main, origin/main, origin/HEAD)
+Author: Chenxi Zhou <cz3@sanger.ac.uk>
+Date:   Tue May 24 09:19:56 2022 +0100
 
-commit e19065aa429439fc8c829687cdb5109355bca159 (HEAD -> main, tag: 1.1a.2, origin/main, origin/HEAD)
+    Bug fix
 
 mkdir -p ~/camel/yahs3
 cd ~/camel/yahs3/
