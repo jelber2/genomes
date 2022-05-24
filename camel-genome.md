@@ -906,5 +906,5 @@ QV	36.119	36.394
 the first iteration of yahs from ![make .hic file yahs iteration 1 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#scaffold-with-yahs-yahs-iteration-1-step)
 ![yahs1](https://github.com/jelber2/genomes/blob/main/pics/yahs1.svg)
 
-the second iteration of yahs from ![make .hic file yahs iteration 2 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#make-hic-file-for-yahs-iteration-2-step), will update tomorrow with picture
+the second iteration of yahs from ![make .hic file yahs iteration 2 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#make-hic-file-for-yahs-iteration-2-step)
 ![yahs2](https://github.com/jelber2/genomes/blob/main/pics/yahs2.svg)
