@@ -1035,7 +1035,7 @@ Length  	Scaffolds     	Contigs       	Length        	Length        	Coverage
  100 MB 	             4	           219	   463,877,766	   463,824,343	  99.99%
 ```
 
-yahs3(re-scaffolded yahs2 assembly)
+yahs3 (re-scaffolded yahs2 assembly)
 
 ```bash
 ~/bin/bbmap-38.94/bbstats.sh yahs.out_scaffolds_final.fa
@@ -1126,7 +1126,7 @@ completeness/coverage is predicted to be 99.3 %
 ```
 
 ## get quality values for the scaffolded assembly
-#### results are pretty much identical between yahs1 and yahs2 iterations
+#### results are pretty much identical between yahs1, yahs2, and yahs3 iterations
 ```bash
 /nfs/scistore16/itgrp/jelbers/bin/yak/yak qv -t34 ../sr.yak yahs.out_scaffolds_final.fa > yahs.out_scaffolds_final.qv 2> /dev/null
 head -n 4 yahs.out_scaffolds_final.qv && tail -n 5 yahs.out_scaffolds_final.qv 
