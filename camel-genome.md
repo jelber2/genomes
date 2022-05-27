@@ -845,21 +845,21 @@ mv tmp2 yahs.out_scaffolds_final.chromosomes.fa
 ## what percentage of the genome is not assigned to chromosomes
 fgrep -v ">" yahs.out_scaffolds_final.chromosomes.fa|wc -m
 
-# update size when ready
+2064779302
 
 cat chromosomes Xchromosome |cut -f 2|wc -m
 
-# update size when ready
+1985599097
 
 cat contigs |cut -f 2|wc -m
 
-# update size when ready
+45332132
 
-# update size when ready echo "229043303/2056285562*100"|bc -l
+echo "45332132/2064779302*100"|bc -l
 
-# update size when ready
+2.19549527429348475700
 
-# # update size when ready % not assigned to chromosomes
+2.2 % not assigned to chromosomes
 ```
 
 ## make .hic file for yahs iteration 3 step
@@ -1033,6 +1033,53 @@ Length  	Scaffolds     	Contigs       	Length        	Length        	Coverage
   25 MB 	            25	           911	 1,652,712,350	 1,652,496,667	  99.99%
   50 MB 	            17	           757	 1,385,733,105	 1,385,553,385	  99.99%
  100 MB 	             4	           219	   463,877,766	   463,824,343	  99.99%
+```
+
+yahs3(re-scaffolded yahs2 assembly)
+
+```bash
+~/bin/bbmap-38.94/bbstats.sh yahs.out_scaffolds_final.fa
+A	C	G	T	N	IUPAC	Other	GC	GC_stdev
+0.2924	0.2074	0.2076	0.2926	0.0002	0.0000	0.0000	0.4150	0.0792
+
+Main genome scaffold total:         	1487
+Main genome contig total:           	2908
+Main genome scaffold sequence total:	2030.930 MB
+Main genome contig sequence total:  	2030.596 MB  	0.016% gap
+Main genome scaffold N/L50:         	11/74.119 MB
+Main genome contig N/L50:           	176/3.428 MB
+Main genome scaffold N/L90:         	29/24.248 MB
+Main genome contig N/L90:           	654/740.176 KB
+Max scaffold length:                	124.144 MB
+Max contig length:                  	20.748 MB
+Number of scaffolds > 50 KB:        	183
+% main genome in scaffolds > 50 KB: 	99.35%
+
+
+Minimum 	Number        	Number        	Total         	Total         	Scaffold
+Scaffold	of            	of            	Scaffold      	Contig        	Contig  
+Length  	Scaffolds     	Contigs       	Length        	Length        	Coverage
+--------	--------------	--------------	--------------	--------------	--------
+    All 	         1,487	         2,908	 2,030,929,742	 2,030,596,110	  99.98%
+    100 	         1,487	         2,908	 2,030,929,742	 2,030,596,110	  99.98%
+    250 	         1,486	         2,907	 2,030,929,550	 2,030,595,918	  99.98%
+    500 	         1,478	         2,899	 2,030,926,259	 2,030,592,627	  99.98%
+   1 KB 	         1,356	         2,777	 2,030,839,800	 2,030,506,177	  99.98%
+ 2.5 KB 	         1,140	         2,561	 2,030,487,839	 2,030,154,225	  99.98%
+   5 KB 	           936	         2,357	 2,029,735,349	 2,029,401,746	  99.98%
+  10 KB 	           670	         2,091	 2,027,777,575	 2,027,444,007	  99.98%
+  25 KB 	           316	         1,736	 2,022,351,459	 2,022,018,178	  99.98%
+  50 KB 	           183	         1,598	 2,017,761,322	 2,017,429,098	  99.98%
+ 100 KB 	           110	         1,507	 2,012,497,537	 2,012,168,997	  99.98%
+ 250 KB 	            64	         1,425	 2,005,173,176	 2,004,852,025	  99.98%
+ 500 KB 	            52	         1,385	 2,001,004,807	 2,000,689,367	  99.98%
+   1 MB 	            44	         1,345	 1,995,643,938	 1,995,335,043	  99.98%
+ 2.5 MB 	            37	         1,280	 1,985,599,060	 1,985,302,033	  99.99%
+   5 MB 	            36	         1,269	 1,981,241,365	 1,980,946,622	  99.99%
+  10 MB 	            36	         1,269	 1,981,241,365	 1,980,946,622	  99.99%
+  25 MB 	            28	         1,141	 1,810,708,287	 1,810,442,780	  99.99%
+  50 MB 	            17	           901	 1,435,381,973	 1,435,172,395	  99.99%
+ 100 MB 	             4	           308	   468,884,874	   468,814,310	  99.98%
 ```
 
 ## get assembly quality value estimates
