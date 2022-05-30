@@ -1150,3 +1150,8 @@ the second iteration of yahs from ![make .hic file yahs iteration 2 step](https:
 
 the third iteration of yahs from ![make .hic file yahs iteration 3 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#make-hic-file-for-yahs-iteration-3-step) , update tomorrow
 ![yahs3](https://github.com/jelber2/genomes/blob/main/pics/yahs3.svg)
+
+
+## Let's view a dotplot of a whole genome alignment between CamDro3(https://www.ncbi.nlm.nih.gov/data-hub/genome/GCF_000803125.2/) and yahs3.chromosomes.fasta
+
+![dotplot](https://github.com/jelber2/genomes/blob/main/pics/map_yahs3_to_CamDro3.svg)
