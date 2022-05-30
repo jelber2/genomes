@@ -1148,7 +1148,7 @@ the first iteration of yahs from ![make .hic file yahs iteration 1 step](https:/
 the second iteration of yahs from ![make .hic file yahs iteration 2 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#make-hic-file-for-yahs-iteration-2-step)
 ![yahs2](https://github.com/jelber2/genomes/blob/main/pics/yahs2.svg)
 
-the third iteration of yahs from ![make .hic file yahs iteration 3 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#make-hic-file-for-yahs-iteration-3-step) , update tomorrow
+the third iteration of yahs from ![make .hic file yahs iteration 3 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#make-hic-file-for-yahs-iteration-3-step)
 ![yahs3](https://github.com/jelber2/genomes/blob/main/pics/yahs3.svg)
 
 
