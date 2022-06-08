@@ -60,19 +60,18 @@ rule icecreamfinder:
 # to remove those sequences from the HiFi reads
 rule sendsketch:
         input: "{id}/decontaminate/{id}-rm-icecream.fasta.gz"
-        output: "{id}/decontaminate/{id}-rm-icecream.fasta.gz.sketch"
+        output: "{id}/decontaminate/{id}-rm-icecream.fasta.gz.sketch.log"
         shell:
             """
             module purge
             module load bbtools/38.87
             sendsketch.sh \
-            outsketch={output} \
-            in={input} records=1000
+            in={input} records=1000 > {output}
             """
 
 # get genome taxids with genome size < 35 Mbp that appear as contaminants
 rule taxids:
-        input: "{id}/decontaminate/{id}-rm-icecream.fasta.gz.sketch"
+        input: "{id}/decontaminate/{id}-rm-icecream.fasta.gz.sketch.log"
         output: "{id}/decontaminate/genomes/genomes.to.get"
         shell:
             """
