@@ -104,7 +104,7 @@ rule getLinks:
             # get links
             for i in `ls {params}/*.zip`;do
               unzip -p $i *fetch.txt | \
-              grep "GCF" |grep -v "json" >> {params}/to.download.txt
+              grep "GCF" |grep -v "json" >> {params}/to.download.txt || :
             done
 
             # get links to genome
@@ -118,9 +118,10 @@ rule download:
         params: "{id}/decontaminate/genomes"
         shell:
             """
+            module load bcftools/1.14
             while read i
             do
-              wget $i -O - |pigz -dc |bgzip -@75 >> {output}
+              wget $i -O - |pigz -dc |bgzip -@4 >> {output}
             done < {input}
             """
 
