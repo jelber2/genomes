@@ -92,9 +92,11 @@ rule getLinks:
         shell:
             """
             # get dehydrated files
+            wget -c https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/LATEST/linux-amd64/datasets
+            chmod u+x datasets
             while read i
             do
-              datasets download genome taxon $i --exclude-gff3 \
+              ./datasets download genome taxon $i --exclude-gff3 \
               --exclude-protein --exclude-rna \
               --dehydrated --filename {params}/$i.zip
             done < {input}
