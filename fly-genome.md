@@ -96,9 +96,9 @@ rule getLinks:
             chmod u+x datasets
             while read i
             do
-              ./datasets download genome taxon $i --exclude-gff3 \
+              ./datasets download genome taxon $i --exclude-gff3 --reference \
               --exclude-protein --exclude-rna \
-              --dehydrated --filename {params}/$i.zip
+              --dehydrated --filename {params}/$i.zip || :
             done < {input}
 
             # get links
