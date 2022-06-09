@@ -71,24 +71,24 @@ rule sendsketch:
 
 # get genome taxids with genome size < 35 Mbp that appear as contaminants
 rule taxids:
-        input: "{id}/decontaminate/{id}-rm-icecream.fasta.gz.sketch.log"
-        output: "{id}/decontaminate/genomes/genomes.to.get"
+        input: "sendsketch.log.txt"
+        output: "genomes/genomes.to.get"
         shell:
             """
-            tail -n +6 {input} | \
+            tail -n +4 {input} | \
             cut -f 9,10,11,12| \
-            perl -pe "s/K(\s+)/000\1/g" | \
-            perl -pe "s/M(\s+)/000000\1/g"| \
+            perl -pe 's/K(\s+)/000$1/g' | \
+            perl -pe 's/M(\s+)/000000$1/g'| \
             awk '$2 < 35000000' OFS='\t' |cut -f 1 | \
-            sort -u |grep -P "^\d" > {output}
+            sort -u |grep -P '^\d' > {output}
             """
 
 # use NCBI Datasets to retrieve genomes from taxids
 # get the links in a zip file for each genome
 rule getLinks:
-        input: "{id}/decontaminate/genomes/genomes.to.get"
-        output: "{id}/decontaminate/genomes/to.download.txt2"
-        params: "{id}/decontaminate/genomes"
+        input: "genomes/genomes.to.get"
+        output: "genomes/to.download.txt2"
+        params: "genomes"
         shell:
             """
             # get dehydrated files
@@ -104,7 +104,7 @@ rule getLinks:
             # get links
             for i in `ls {params}/*.zip`;do
               unzip -p $i *fetch.txt | \
-              grep "GCF" |grep -v "json" >> {params}/to.download.txt || :
+              grep 'GCF' |head -n 1|grep -v 'json' >> {params}/to.download.txt || :
             done
 
             # get links to genome
