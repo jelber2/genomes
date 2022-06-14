@@ -258,7 +258,7 @@ now error-correct the long reads
 --corrected-out corrected.50x.fa -f SRR12763791.50x.fasta -t 96 -x dbg
 ```
   
-### make lower case bases upper case and put on a single line
+make lower case bases upper case and put on a single line
 
 ```sh
 seqtk seq -Ul0 corrected.50x.fa > SRR12763791.50x.GraphAligner2.fasta
