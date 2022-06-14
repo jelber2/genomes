@@ -203,19 +203,47 @@ use https://github.com/mbhall88/rasusa version 0.6.1
 ## Quality and adapter trimming
 bbduk 38.82
 
+```sh
 bbduk.sh threads=24 in1=SRR8599727_decon_1.fastq.gz in2=SRR8599727_decon_2.fastq.gz \
 out1=SRR8599727_decon_trim_1.fastq.gz out2=SRR8599727_decon_trim_2.fastq.gz \
 ref=~/bin/bbmap-38.94/resources/adapters.fa ktrim=r k=23 mink=11 hdist=1 tpe tbo qtrim=rl trimq=15 > bbduk2.log 2>&1 &
+```
 
 ## Error-correct decontaminated, QC'd Illumina reads
-tadpole.sh in1=SRR8599727_decon_trim_1.fastq.gz in2=SRR8599727_decon_trim_2.fastq.gz \
-out1=<corrected> mode=correct
+```sh
+module load bcftools/1.14
+module load bbtools/38.82
+
+tadpole.sh threads=34 in1=SRR8599727_decon_trim_1.fastq.gz in2=SRR8599727_decon_trim_2.fastq.gz \
+out1=SRR8599727_decon_trim_corr_1.fastq.gz out2=SRR8599727_decon_trim_corr_2.fastq.gz mode=correct
+```
+
+## Interleave for KmerGenie
+http://kmergenie.bx.psu.edu/
+
+```sh
+module load bbtools/38.82
+reformat.sh in=SRR8599727_decon_trim_corr_1.fastq.gz in2=SRR8599727_decon_trim_corr_2.fastq.gz out=SRR8599727_decon_trim_corr_interleaved.fasta
+/nfs/scistore16/itgrp/jelbers/bin/kmergenie-1.7051/kmergenie SRR8599727_decon_trim_corr_interleaved.fasta -t 48 -k 121 -l 61
+```
+
+'best' K=111
+![KmerGenie](https://github.com/jelber2/genomes/blob/main/pics/KmerGenie.png)
 
 
 ## Use GraphAligner commit # cf7f5db and decontaminated, QC'd, and error-corrected Illumina WGS reads to correct 50x Nanopore
-/nfs/scistore16/itgrp/jelbers/bin/bcalm/build/bcalm -nb-cores 40 -in filenames -kmer-size 67 -abundance-min 3 > tmp/bcalm_stdout.txt 2> tmp/bcalm_stderr.txt
-  
-  
+
+first make unitigs with BCALM 2, version v2.2.3, git commit b8cde9c
+
+```sh
+ls -1 SRR8599727_decon_trim_corr_1.fastq.gz SRR8599727_decon_trim_corr_2.fastq.gz > filenames
+/nfs/scistore16/itgrp/jelbers/bin/bcalm/build/bcalm -nb-cores 48 -in filenames -kmer-size 111 -abundance-min 3
+```
+
+then convert unitigs.fa to untigs.gfa
+
+/nfs/scistore16/itgrp/jelbers/bin/bcalm/scripts/convertToGFA.py unitigs.fa unitigs.gfa 111
+
 ```sh
 git show
 
@@ -226,19 +254,18 @@ Date:   Fri Mar 25 15:03:28 2022 -0400
     correct mxm library in readme
 ```
 
-# https://github.com/maickrau/GraphAligner
-GraphAlignerPath: /nfs/scistore16/itgrp/jelbers/bin/GraphAligner/bin/GraphAligner
-# https://github.com/GATB/bcalm
-BcalmPath: /nfs/scistore16/itgrp/jelbers/bin/bcalm/build/bcalm
-# https://github.com/GATB/bcalm/blob/master/scripts/convertToGFA.py
-BcalmConvertPath: /nfs/scistore16/itgrp/jelbers/bin/bcalm/scripts/convertToGFA.py
-# https://github.com/mourisl/Lighter
+/nfs/scistore16/itgrp/jelbers/bin/GraphAligner/bin/GraphAligner -g unitigs.gfa --corrected-out corrected.50x.fa -f SRR12763791.50x.2.fasta -t 96 -x dbg
 
   
-  ### make lower case bases upper case and put on a single line
+### make lower case bases upper case and put on a single line
 
 ```sh
-seqtk seq -Ul0 output/corrected.50x.fa > SRR12763791.50x.GraphAligner.fasta
+seqtk seq -Ul0 corrected.50x.fa > SRR12763791.50x.GraphAligner.fasta
 ```
+
+## Assemble with flye (2.9-b1778)
+
+```sh
+/nfs/scistore16/itgrp/jelbers/git/Flye/bin/flye --threads 48 --nano-corr SRR12763791.50x.GraphAligner.fasta --out-dir flye-SRR12763791.50x.GraphAligner
 
 
