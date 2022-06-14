@@ -147,7 +147,8 @@ rule seal:
 perform decontamination
 
 ```sh
-snakemake -j 10 --snakefile decontaminate-snakefile --printshellcmds --latency-wait 60 --local-cores 4 --cores all --cluster "sbatch --export=NONE --no-requeue --job-name {rule} --mem=100g \
+snakemake -j 10 --snakefile decontaminate-snakefile --printshellcmds --latency-wait 60 --local-cores 4 \
+--cores all --cluster "sbatch --export=NONE --no-requeue --job-name {rule} --mem=100g \
 --time=4:00:00 --cpus-per-task=48 " all > decontaminate-snakefile.log 2>&1 &
 ```
 
@@ -196,7 +197,8 @@ Shigella
 use https://github.com/mbhall88/rasusa version 0.6.1
 
 ```sh
-~/bin/rasusa-0.6.1-x86_64-unknown-linux-musl/rasusa --seed 1 --coverage 50 --genome-size 400M --input SRR12763791_1.fastq.gz \
+~/bin/rasusa-0.6.1-x86_64-unknown-linux-musl/rasusa --seed 1 --coverage 50 \
+--genome-size 400M --input SRR12763791_1.fastq.gz \
 2> rasusa.log |seqtk seq -A > SRR12763791.50x.fasta
 ```
 
@@ -206,7 +208,7 @@ bbduk 38.82
 ```sh
 bbduk.sh threads=24 in1=SRR8599727_decon_1.fastq.gz in2=SRR8599727_decon_2.fastq.gz \
 out1=SRR8599727_decon_trim_1.fastq.gz out2=SRR8599727_decon_trim_2.fastq.gz \
-ref=~/bin/bbmap-38.94/resources/adapters.fa ktrim=r k=23 mink=11 hdist=1 tpe tbo qtrim=rl trimq=15 > bbduk2.log 2>&1 &
+ref=~/bin/bbmap-38.94/resources/adapters.fa ktrim=r k=23 mink=11 hdist=1 tpe tbo qtrim=rl trimq=15
 ```
 
 ## Error-correct decontaminated, QC'd Illumina reads
@@ -223,8 +225,11 @@ http://kmergenie.bx.psu.edu/
 
 ```sh
 module load bbtools/38.82
-reformat.sh in=SRR8599727_decon_trim_corr_1.fastq.gz in2=SRR8599727_decon_trim_corr_2.fastq.gz out=SRR8599727_decon_trim_corr_interleaved.fasta
-/nfs/scistore16/itgrp/jelbers/bin/kmergenie-1.7051/kmergenie SRR8599727_decon_trim_corr_interleaved.fasta -t 48 -k 121 -l 61
+reformat.sh in=SRR8599727_decon_trim_corr_1.fastq.gz in2=SRR8599727_decon_trim_corr_2.fastq.gz \
+out=SRR8599727_decon_trim_corr_interleaved.fasta
+
+/nfs/scistore16/itgrp/jelbers/bin/kmergenie-1.7051/kmergenie \
+SRR8599727_decon_trim_corr_interleaved.fasta -t 48 -k 121 -l 61
 ```
 
 'best' K=111
@@ -249,7 +254,8 @@ then convert unitigs.fa to untigs.gfa
 now error-correct the long reads
 
 ```sh
-/nfs/scistore16/itgrp/jelbers/bin/GraphAligner/bin/GraphAligner -g unitigs.gfa --corrected-out corrected.50x.fa -f SRR12763791.50x.fasta -t 96 -x dbg
+/nfs/scistore16/itgrp/jelbers/bin/GraphAligner/bin/GraphAligner -g unitigs.gfa \
+--corrected-out corrected.50x.fa -f SRR12763791.50x.fasta -t 96 -x dbg
 ```
   
 ### make lower case bases upper case and put on a single line
@@ -261,6 +267,6 @@ seqtk seq -Ul0 corrected.50x.fa > SRR12763791.50x.GraphAligner2.fasta
 ## Assemble with flye (2.9-b1778)
 
 ```sh
-/nfs/scistore16/itgrp/jelbers/git/Flye/bin/flye --threads 48 --nano-corr SRR12763791.50x.GraphAligner2.fasta --out-dir flye-SRR12763791.50x.GraphAligner
-
-
+/nfs/scistore16/itgrp/jelbers/git/Flye/bin/flye --threads 48 \
+--nano-corr SRR12763791.50x.GraphAligner2.fasta --out-dir flye-SRR12763791.50x.GraphAligner
+```
