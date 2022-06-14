@@ -242,30 +242,25 @@ ls -1 SRR8599727_decon_trim_corr_1.fastq.gz SRR8599727_decon_trim_corr_2.fastq.g
 
 then convert unitigs.fa to untigs.gfa
 
-/nfs/scistore16/itgrp/jelbers/bin/bcalm/scripts/convertToGFA.py unitigs.fa unitigs.gfa 111
-
 ```sh
-git show
-
-commit cf7f5dbaab1e852d4a2e0c5834f56c1b49424b04 (HEAD -> master, tag: v1.0.16-osx, origin/master, origin/HEAD)
-Author: Mikko Rautiainen <m_rautiainen@hotmail.com>
-Date:   Fri Mar 25 15:03:28 2022 -0400
-
-    correct mxm library in readme
+/nfs/scistore16/itgrp/jelbers/bin/bcalm/scripts/convertToGFA.py unitigs.fa unitigs.gfa 111
 ```
 
-/nfs/scistore16/itgrp/jelbers/bin/GraphAligner/bin/GraphAligner -g unitigs.gfa --corrected-out corrected.50x.fa -f SRR12763791.50x.2.fasta -t 96 -x dbg
+now error-correct the long reads
 
+```sh
+/nfs/scistore16/itgrp/jelbers/bin/GraphAligner/bin/GraphAligner -g unitigs.gfa --corrected-out corrected.50x.fa -f SRR12763791.50x.fasta -t 96 -x dbg
+```
   
 ### make lower case bases upper case and put on a single line
 
 ```sh
-seqtk seq -Ul0 corrected.50x.fa > SRR12763791.50x.GraphAligner.fasta
+seqtk seq -Ul0 corrected.50x.fa > SRR12763791.50x.GraphAligner2.fasta
 ```
 
 ## Assemble with flye (2.9-b1778)
 
 ```sh
-/nfs/scistore16/itgrp/jelbers/git/Flye/bin/flye --threads 48 --nano-corr SRR12763791.50x.GraphAligner.fasta --out-dir flye-SRR12763791.50x.GraphAligner
+/nfs/scistore16/itgrp/jelbers/git/Flye/bin/flye --threads 48 --nano-corr SRR12763791.50x.GraphAligner2.fasta --out-dir flye-SRR12763791.50x.GraphAligner
 
 
