@@ -439,8 +439,10 @@ cut -f 1-2 yahs.out_scaffolds_final.fa.fai > scaffolds_final.chrom.sizes
 (java -jar -Xmx32G juicer_tools.1.9.9_jcuda.0.8.jar pre --threads 24 alignments_sorted.txt out.hic.part scaffolds_final.chrom.sizes) && (mv out4.hic.part out4.hic)
 ```
 
-Dot plot
+Dot plot with http://dgenies.toulouse.inra.fr/
 
 ```sh
-$HOME/bin/mm2-fast/minimap2 --max-chain-skip=1000000 -cx asm5 -t24 --cs ~/test/Dryad_upload/Csq_v2.0.fasta.gz yahs.out_scaffolds_final.chromosomes.fa 2>/dev/null |sort -S100G -T ./ --parallel=24 -k6,6 -k8,8n > yahs-vs-Csq_v2.0.paf &
+$HOME/bin/mm2-fast/minimap2 --max-chain-skip=1000000 -cx asm5 -t24 --cs \
+~/test/Dryad_upload/Csq_v2.0.fasta.gz yahs.out_scaffolds_final.chromosomes.fa \
+2>/dev/null |sort -S100G -T ./ --parallel=24 -k6,6 -k8,8n > yahs-vs-Csq_v2.0.paf &
 ```
