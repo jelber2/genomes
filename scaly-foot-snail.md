@@ -1,5 +1,11 @@
 # Analysis of Chrysomallon squamiferum
 
+## Main directory
+
+```sh
+cd ~/test/
+```
+
 ## Get original Illumina WGS reads
 ```sh
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR859/007/SRR8599727/SRR8599727_1.fastq.gz
@@ -203,9 +209,8 @@ use https://github.com/mbhall88/rasusa version 0.6.1
 ```
 
 ## Quality and adapter trimming
-bbduk 38.82
-
 ```sh
+module load bbtools/38.82
 bbduk.sh threads=24 in1=SRR8599727_decon_1.fastq.gz in2=SRR8599727_decon_2.fastq.gz \
 out1=SRR8599727_decon_trim_1.fastq.gz out2=SRR8599727_decon_trim_2.fastq.gz \
 ref=~/bin/bbmap-38.94/resources/adapters.fa ktrim=r k=23 mink=11 hdist=1 tpe tbo qtrim=rl trimq=15
@@ -215,6 +220,8 @@ ref=~/bin/bbmap-38.94/resources/adapters.fa ktrim=r k=23 mink=11 hdist=1 tpe tbo
 ```sh
 module load bcftools/1.14
 module load bbtools/38.82
+
+error-correct using k=31 and tadpole.sh 
 
 tadpole.sh threads=34 in1=SRR8599727_decon_trim_1.fastq.gz in2=SRR8599727_decon_trim_2.fastq.gz \
 out1=SRR8599727_decon_trim_corr_1.fastq.gz out2=SRR8599727_decon_trim_corr_2.fastq.gz mode=correct
@@ -261,6 +268,7 @@ now error-correct the long reads
 make lower case bases upper case and put on a single line
 
 ```sh
+# seqtk 1.3-r117-dirty
 seqtk seq -Ul0 corrected.50x.fa > SRR12763791.50x.GraphAligner2.fasta
 ```
 
@@ -271,7 +279,7 @@ seqtk seq -Ul0 corrected.50x.fa > SRR12763791.50x.GraphAligner2.fasta
 --nano-corr SRR12763791.50x.GraphAligner2.fasta --out-dir flye-SRR12763791.50x.GraphAligner
 ```
 
-## Purge dups
+## Purge dups commit # 44fcd38
 
 ```sh
 cd flye-SRR12763791.50x.GraphAligner
@@ -279,6 +287,7 @@ cd flye-SRR12763791.50x.GraphAligner
 export "PATH=/nfs/scistore16/itgrp/jelbers/bin/purge_dups/src:$PATH"
 split_fa p_ctgs.fasta > split.fa
 
+# mm2-fast commit # 830e8c7
 /nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 -t 24 -x map-ont --secondary=no --max-chain-skip=1000000 --max-chain-skip=1000000 assembly.fasta ../SRR12763791.50x.GraphAligner2.fasta  2>/dev/null | pigz -p 24 -c - > test.paf.gz
 
 /nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 --max-chain-skip=1000000 -t 24 -xasm5 -DP split.fa split.fa 2>/dev/null| pigz -p 24 -c - > split.fa.paf.gz
