@@ -48,7 +48,7 @@ rule all:
 # steps is to download
 # RefSeq bacteria, RefSeq viruses, RefSeq Human
 # for example then run `seal.sh`
-# to remove those sequences from the HiFi reads
+# to remove those sequences from the Illumina reads
 rule sendsketch:
         input: 
             read1=expand("{id}_1.fastq.gz", id = IDS),
