@@ -245,7 +245,7 @@ SRR8599727_decon_trim_corr_interleaved.fasta -t 48 -k 121 -l 61
 
 ## Use GraphAligner commit # cf7f5db and decontaminated, QC'd, and error-corrected Illumina WGS reads to correct 50x Nanopore
 
-first make unitigs with BCALM 2, version v2.2.3, git commit b8cde9c
+first make unitigs with BCALM 2, version v2.2.3, git commit b8cde9c (https://github.com/GATB/bcalm)
 
 ```sh
 ls -1 SRR8599727_decon_trim_corr_1.fastq.gz SRR8599727_decon_trim_corr_2.fastq.gz > filenames
