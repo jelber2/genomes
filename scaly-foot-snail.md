@@ -248,13 +248,13 @@ ls -1 SRR8599727_decon_trim_corr_1.fastq.gz SRR8599727_decon_trim_corr_2.fastq.g
 then convert unitigs.fa to untigs.gfa
 
 ```sh
-/nfs/scistore16/itgrp/jelbers/bin/bcalm/scripts/convertToGFA.py unitigs.fa unitigs.gfa 111
+/nfs/scistore16/itgrp/jelbers/bin/bcalm/scripts/convertToGFA.py filenames.unitigs.fa filenames.unitigs.gfa 111
 ```
 
 now error-correct the long reads
 
 ```sh
-/nfs/scistore16/itgrp/jelbers/bin/GraphAligner/bin/GraphAligner -g unitigs.gfa \
+/nfs/scistore16/itgrp/jelbers/bin/GraphAligner/bin/GraphAligner -g filenames.unitigs.gfa \
 --corrected-out corrected.50x.fa -f SRR12763791.50x.fasta -t 96 -x dbg
 ```
   
@@ -270,3 +270,128 @@ seqtk seq -Ul0 corrected.50x.fa > SRR12763791.50x.GraphAligner2.fasta
 /nfs/scistore16/itgrp/jelbers/git/Flye/bin/flye --threads 48 \
 --nano-corr SRR12763791.50x.GraphAligner2.fasta --out-dir flye-SRR12763791.50x.GraphAligner
 ```
+
+## Purge dups
+
+```sh
+cd flye-SRR12763791.50x.GraphAligner
+
+export "PATH=/nfs/scistore16/itgrp/jelbers/bin/purge_dups/src:$PATH"
+split_fa p_ctgs.fasta > split.fa
+
+/nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 -t 24 -x map-ont --secondary=no --max-chain-skip=1000000 --max-chain-skip=1000000 assembly.fasta ../SRR12763791.50x.GraphAligner2.fasta  2>/dev/null | pigz -p 24 -c - > test.paf.gz
+
+/nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 --max-chain-skip=1000000 -t 24 -xasm5 -DP split.fa split.fa 2>/dev/null| pigz -p 24 -c - > split.fa.paf.gz
+
+pbcstat test.paf.gz -O ./
+calcuts PB.stat > PB.cutoffs
+purge_dups -2 -T PB.cutoffs -c PB.base.cov split.fa.paf.gz > PB.bed
+get_seqs -p assembly PB.bed assembly.fasta
+```
+
+## Hi-C
+
+quality and adapter trimming of Hi-C reads
+
+```sh
+module load bbtools/38.82
+bbduk.sh threads=24 in1=SRR8599719_1.fastq.gz in2=SRR8599719_2.fastq.gz \
+out1=SRR8599719_trim_1.fastq.gz out2=SRR8599719_trim_2.fastq.gz \
+ref=~/bin/bbmap-38.94/resources/adapters.fa ktrim=r k=23 mink=11 hdist=1 \
+tpe tbo qtrim=rl trimq=15 > bbduk.log 2>&1
+```
+
+remove PCR duplicates
+
+```sh
+module load bbtools/38.82
+dedupe.sh usejni=t in=SRR8599719_trim_1.fastq.gz in2=SRR8599719_trim_2.fastq.gz out=SRR8599719_trim_dedup_interleaved.fastq.gz threads=48
+
+# interleaved to pairs
+module load bbtools/38.82
+reformat.sh int=t in=SRR8599719_trim_dedup_interleaved.fastq.gz out1=SRR8599719_trim_dedup_1.fastq.gz \
+out2=SRR8599719_trim_dedup_2.fastq.gz
+```
+
+map reads with BWA-MEM2, filter and combine with https://github.com/ArimaGenomics/mapping_pipeline/
+
+```sh
+module load bwa-mem2/2.2.1
+module load samtools/1.14
+module load perl/5.32.1b
+bwa-mem2 index -p assembly.purged.fa assembly.purged.fa 2>/dev/null &
+
+module purge
+module load bwa-mem2/2.2.1
+module load samtools/1.14
+module load perl/5.32.1b
+bwa-mem2 mem -t 96 assembly.purged.fa SRR8599719_trim_dedup_1.fastq.gz | \
+perl /nfs/scistore16/itgrp/jelbers/bin/mapping_pipeline/filter_five_end.pl | \
+samtools view -Sb > R1.bam
+
+module purge
+module load bwa-mem2/2.2.1
+module load samtools/1.14
+module load perl/5.32.1b
+bwa-mem2 mem -t 96 assembly.purged.fa SRR8599719_trim_dedup_2.fastq.gz | \
+perl /nfs/scistore16/itgrp/jelbers/bin/mapping_pipeline/filter_five_end.pl | \
+samtools view -Sb > R2.bam
+```
+
+keep only primary alignments
+
+```sh
+module load samtools/1.14
+samtools view -h -@12 -F 2304 R1.bam |samtools view -@8 -Sb > R2b.bam  &
+samtools view -h -@12 -F 2304 R2.bam |samtools view -@8 -Sb > R2b.bam  &
+```
+
+split into 64 pieces so we can do parallel processing to combine R1 and R2
+
+```sh
+cd ~/test
+mkdir -p partition
+cd partition
+partition.sh in=../R1b.bam out=hi-c1-2%.bam ways=64 2> hi-c1.partition.log &
+partition.sh in=../R2b.bam out=hi-c2-2%.bam ways=64 2> hi-c2.partition.log &
+```
+
+### script for parallel processing
+
+merge.slurm
+
+```bash
+#!/bin/bash
+#
+#SBATCH --job-name=merge
+#SBATCH -c 4
+#SBATCH --mem=12g
+#SBATCH --time=1:00:0
+#SBATCH --no-requeue
+#SBATCH --export=NONE
+unset SLURM_EXPORT_ENV
+module purge
+module load samtools/1.14
+module load perl/5.32.1b
+
+i=${SLURM_ARRAY_TASK_ID}
+
+module load samtools/1.14
+perl /nfs/scistore16/itgrp/jelbers/bin/mapping_pipeline/two_read_bam_combiner.pl \
+partition/hi-c1-2${i}.bam partition/hi-c2-2${i}.bam samtools 15 2>>partition/hi-c-2${i}.bam.log| \
+samtools sort > partition/hi-c-2${i}.bam
+```
+
+submit array job
+
+```sh
+sbatch --array=0-63 merge.slurm
+```
+
+sort by read name
+
+```sh
+module load samtools/1.14
+samtools cat -@34 partition/hi-c-2*.bam |samtools sort -@34 -n > hi-c-2.bam
+```
+
