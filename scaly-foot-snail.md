@@ -287,8 +287,8 @@ cd flye-SRR12763791.50x.GraphAligner
 export "PATH=/nfs/scistore16/itgrp/jelbers/bin/purge_dups/src:$PATH"
 split_fa p_ctgs.fasta > split.fa
 
-# mm2-fast commit # 830e8c7
-/nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 -t 24 -x map-ont --secondary=no --max-chain-skip=1000000 --max-chain-skip=1000000 assembly.fasta ../SRR12763791.50x.GraphAligner2.fasta  2>/dev/null | pigz -p 24 -c - > test.paf.gz
+# mm2-fast commit # 830e8c7 from https://github.com/bwa-mem2/mm2-fast
+/nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 -t 24 -x map-ont --secondary=no --max-chain-skip=1000000 assembly.fasta ../SRR12763791.50x.GraphAligner2.fasta  2>/dev/null | pigz -p 24 -c - > test.paf.gz
 
 /nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 --max-chain-skip=1000000 -t 24 -xasm5 -DP split.fa split.fa 2>/dev/null| pigz -p 24 -c - > split.fa.paf.gz
 
@@ -328,13 +328,15 @@ map reads with BWA-MEM2, filter and combine with https://github.com/ArimaGenomic
 module load bwa-mem2/2.2.1
 module load samtools/1.14
 module load perl/5.32.1b
-bwa-mem2 index -p assembly.purged.fa assembly.purged.fa 2>/dev/null &
+cd ~/test
+cp flye-SRR12763791.50x.GraphAligner/assembly.purged.fa assembly.purged.fasta
+bwa-mem2 index -p assembly.purged.fasta assembly.purged.fasta 2>/dev/null &
 
 module purge
 module load bwa-mem2/2.2.1
 module load samtools/1.14
 module load perl/5.32.1b
-bwa-mem2 mem -t 96 assembly.purged.fa SRR8599719_trim_dedup_1.fastq.gz | \
+bwa-mem2 mem -t 96 assembly.purged.fasta SRR8599719_trim_dedup_1.fastq.gz | \
 perl /nfs/scistore16/itgrp/jelbers/bin/mapping_pipeline/filter_five_end.pl | \
 samtools view -Sb > R1.bam
 
@@ -342,7 +344,7 @@ module purge
 module load bwa-mem2/2.2.1
 module load samtools/1.14
 module load perl/5.32.1b
-bwa-mem2 mem -t 96 assembly.purged.fa SRR8599719_trim_dedup_2.fastq.gz | \
+bwa-mem2 mem -t 96 assembly.purged.fasta SRR8599719_trim_dedup_2.fastq.gz | \
 perl /nfs/scistore16/itgrp/jelbers/bin/mapping_pipeline/filter_five_end.pl | \
 samtools view -Sb > R2.bam
 ```
@@ -404,3 +406,37 @@ module load samtools/1.14
 samtools cat -@34 partition/hi-c-2*.bam |samtools sort -@34 -n > hi-c-2.bam
 ```
 
+## Scaffold
+
+https://github.com/c-zhou/yahs
+YaHS commit# f0803af
+
+```sh
+module load samtools/1.14
+
+cd ~/test
+mkdir -p assembly.purged
+cd assembly.purged
+cp ../assembly.purged.fasta assembly.purged.fasta
+samtools faidx assembly.purged.fasta
+~/bin/yahs/yahs -e AAGCTT assembly.purged.fasta hi-c-2.bam > yahs.log 2>&1 &
+```
+
+make Hi-C contact map
+
+```sh
+cd ~/test/assembly.purged
+
+(/nfs/scistore16/itgrp/jelbers/bin/yahs/juicer_pre yahs.out.bin yahs.out_scaffolds_final.agp assembly.purged.fasta.fai | sort -k2,2d -k6,6d -T ./ --parallel=24 -S32G | awk 'NF' > alignments_sorted.txt.part) && (mv alignments_sorted.txt.part alignments_sorted.txt)
+wget -c https://s3.amazonaws.com/hicfiles.tc4ga.com/public/juicer/juicer_tools.1.9.9_jcuda.0.8.jar
+
+samtools faidx yahs.out_scaffolds_final.fa
+cut -f 1-2 yahs.out_scaffolds_final.fa.fai > scaffolds_final.chrom.sizes
+(java -jar -Xmx32G juicer_tools.1.9.9_jcuda.0.8.jar pre --threads 24 alignments_sorted.txt out.hic.part scaffolds_final.chrom.sizes) && (mv out4.hic.part out4.hic)
+```
+
+Dot plot
+
+```sh
+$HOME/bin/mm2-fast/minimap2 --max-chain-skip=1000000 -cx asm5 -t24 --cs ~/test/Dryad_upload/Csq_v2.0.fasta.gz yahs.out_scaffolds_final.chromosomes.fa 2>/dev/null |sort -S100G -T ./ --parallel=24 -k6,6 -k8,8n > yahs-vs-Csq_v2.0.paf &
+```
