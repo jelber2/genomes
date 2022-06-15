@@ -288,9 +288,12 @@ export "PATH=/nfs/scistore16/itgrp/jelbers/bin/purge_dups/src:$PATH"
 split_fa p_ctgs.fasta > split.fa
 
 # mm2-fast commit # 830e8c7 from https://github.com/bwa-mem2/mm2-fast
-/nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 -t 24 -x map-ont --secondary=no --max-chain-skip=1000000 assembly.fasta ../SRR12763791.50x.GraphAligner2.fasta  2>/dev/null | pigz -p 24 -c - > test.paf.gz
+/nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 -t 24 -x map-ont --secondary=no \
+--max-chain-skip=1000000 assembly.fasta ../SRR12763791.50x.GraphAligner2.fasta \
+2>/dev/null | pigz -p 24 -c - > test.paf.gz
 
-/nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 --max-chain-skip=1000000 -t 24 -xasm5 -DP split.fa split.fa 2>/dev/null| pigz -p 24 -c - > split.fa.paf.gz
+/nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 --max-chain-skip=1000000 \
+-t 24 -xasm5 -DP split.fa split.fa 2>/dev/null| pigz -p 24 -c - > split.fa.paf.gz
 
 pbcstat test.paf.gz -O ./
 calcuts PB.stat > PB.cutoffs
@@ -314,7 +317,8 @@ remove PCR duplicates
 
 ```sh
 module load bbtools/38.82
-dedupe.sh usejni=t in=SRR8599719_trim_1.fastq.gz in2=SRR8599719_trim_2.fastq.gz out=SRR8599719_trim_dedup_interleaved.fastq.gz threads=48
+dedupe.sh usejni=t in=SRR8599719_trim_1.fastq.gz in2=SRR8599719_trim_2.fastq.gz \
+out=SRR8599719_trim_dedup_interleaved.fastq.gz threads=48
 
 # interleaved to pairs
 module load bbtools/38.82
