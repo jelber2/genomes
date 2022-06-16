@@ -357,7 +357,7 @@ keep only primary alignments
 
 ```sh
 module load samtools/1.14
-samtools view -h -@12 -F 2304 R1.bam |samtools view -@8 -Sb > R2b.bam  &
+samtools view -h -@12 -F 2304 R1.bam |samtools view -@8 -Sb > R1b.bam  &
 samtools view -h -@12 -F 2304 R2.bam |samtools view -@8 -Sb > R2b.bam  &
 ```
 
