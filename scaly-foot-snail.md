@@ -276,29 +276,69 @@ seqtk seq -Ul0 corrected.50x.fa > SRR12763791.50x.GraphAligner2.fasta
 
 ```sh
 /nfs/scistore16/itgrp/jelbers/git/Flye/bin/flye --threads 48 \
---nano-corr SRR12763791.50x.GraphAligner2.fasta --out-dir flye-SRR12763791.50x.GraphAligner
+--nano-corr SRR12763791.50x.GraphAligner2.fasta --out-dir flye-SRR12763791.50x.GraphAligner2
 ```
 
 ## Purge dups commit # 44fcd38
 
 ```sh
-cd flye-SRR12763791.50x.GraphAligner
+cd ~/test
+cp flye-SRR12763791.50x.GraphAligner2/30-repeat/contigs.fasta contigs.fasta
 
-export "PATH=/nfs/scistore16/itgrp/jelbers/bin/purge_dups/src:$PATH"
-split_fa p_ctgs.fasta > split.fa
+# purge dups once
+    export "PATH=/nfs/scistore16/itgrp/jelbers/bin/purge_dups/src:$PATH"
+    split_fa contigs.fasta > split.fa
 
-# mm2-fast commit # 830e8c7 from https://github.com/bwa-mem2/mm2-fast
-/nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 -t 24 -x map-ont --secondary=no \
---max-chain-skip=1000000 assembly.fasta ../SRR12763791.50x.GraphAligner2.fasta \
-2>/dev/null | pigz -p 24 -c - > test.paf.gz
+    # mm2-fast commit # 830e8c7 from https://github.com/bwa-mem2/mm2-fast
+    /nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 -t 24 -x map-ont --secondary=no \
+    --max-chain-skip=1000000 contigs.fasta ../SRR12763791.50x.GraphAligner2.fasta \
+    2>/dev/null | pigz -p 24 -c - > test.paf.gz
 
-/nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 --max-chain-skip=1000000 \
--t 24 -xasm5 -DP split.fa split.fa 2>/dev/null| pigz -p 24 -c - > split.fa.paf.gz
+    /nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 --max-chain-skip=1000000 \
+    -t 24 -xasm5 -DP split.fa split.fa 2>/dev/null| pigz -p 24 -c - > split.fa.paf.gz
 
-pbcstat test.paf.gz -O ./
-calcuts PB.stat > PB.cutoffs
-purge_dups -2 -T PB.cutoffs -c PB.base.cov split.fa.paf.gz > PB.bed
-get_seqs -p assembly PB.bed assembly.fasta
+    pbcstat test.paf.gz -O ./
+    calcuts PB.stat > PB.cutoffs
+    purge_dups -2 -T PB.cutoffs -c PB.base.cov split.fa.paf.gz > PB.bed
+    get_seqs -p contigs PB.bed contigs.fasta
+
+# purge dups twice
+
+    split_fa contigs.purged.fa > split.fa
+
+    # mm2-fast commit # 830e8c7 from https://github.com/bwa-mem2/mm2-fast
+    /nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 -t 24 -x map-ont --secondary=no \
+    --max-chain-skip=1000000 contigs.purged.fa SRR12763791.50x.GraphAligner2.fasta \
+    2>/dev/null | pigz -p 24 -c - > test.paf.gz
+
+    /nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 --max-chain-skip=1000000 \
+    -t 24 -xasm5 -DP split.fa split.fa 2>/dev/null| pigz -p 24 -c - > split.fa.paf.gz
+
+    pbcstat test.paf.gz -O ./
+    calcuts PB.stat > PB.cutoffs
+    purge_dups -2 -T PB.cutoffs -c PB.base.cov split.fa.paf.gz > PB.bed
+    get_seqs -p contigs.purged PB.bed contigs.purged.fa
+
+# purge dups thrice
+
+    split_fa contigs.purged.purged.fa > split.fa
+
+    # mm2-fast commit # 830e8c7 from https://github.com/bwa-mem2/mm2-fast
+    /nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 -t 24 -x map-ont --secondary=no \
+    --max-chain-skip=1000000 contigs.purged.purged.fa SRR12763791.50x.GraphAligner2.fasta \
+    2>/dev/null | pigz -p 24 -c - > test.paf.gz
+
+    /nfs/scistore16/itgrp/jelbers/bin/mm2-fast/minimap2 --max-chain-skip=1000000 \
+    -t 24 -xasm5 -DP split.fa split.fa 2>/dev/null| pigz -p 24 -c - > split.fa.paf.gz
+
+    pbcstat test.paf.gz -O ./
+    calcuts PB.stat > PB.cutoffs
+    purge_dups -2 -T PB.cutoffs -c PB.base.cov split.fa.paf.gz > PB.bed
+    get_seqs -p contigs.purged.purged PB.bed contigs.purged.purged.fa
+
+# rename
+cp contigs.purged.purged.purged.fa contigs.purged.purged.purged.fasta
+
 ```
 
 ## Hi-C
