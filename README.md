@@ -1,5 +1,7 @@
 # genomes
-example genome assembly and annotation scripts
+## Examples
+
+genome assembly and annotation scripts
 
 assembly:
 
