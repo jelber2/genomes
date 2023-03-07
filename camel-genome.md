@@ -1142,16 +1142,16 @@ QV	36.119	36.394
 ```
 
 ## Let's view the HiC contact map made with Juicebox
-the first iteration of yahs from ![make .hic file yahs iteration 1 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#scaffold-with-yahs-yahs-iteration-1-step)
-![yahs1](https://github.com/jelber2/genomes/blob/main/pics/yahs1.svg)
+the first iteration of yahs from [make .hic file yahs iteration 1 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#scaffold-with-yahs-yahs-iteration-1-step)
+[yahs1](https://github.com/jelber2/genomes/blob/main/pics/yahs1.svg)
 
-the second iteration of yahs from ![make .hic file yahs iteration 2 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#make-hic-file-for-yahs-iteration-2-step)
-![yahs2](https://github.com/jelber2/genomes/blob/main/pics/yahs2.svg)
+the second iteration of yahs from [make .hic file yahs iteration 2 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#make-hic-file-for-yahs-iteration-2-step)
+[yahs2](https://github.com/jelber2/genomes/blob/main/pics/yahs2.svg)
 
-the third iteration of yahs from ![make .hic file yahs iteration 3 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#make-hic-file-for-yahs-iteration-3-step)
-![yahs3](https://github.com/jelber2/genomes/blob/main/pics/yahs3.svg)
+the third iteration of yahs from [make .hic file yahs iteration 3 step](https://github.com/jelber2/genomes/blob/main/camel-genome.md#make-hic-file-for-yahs-iteration-3-step)
+[yahs3](https://github.com/jelber2/genomes/blob/main/pics/yahs3.svg)
 
 
 ## Let's view a dotplot of a whole genome alignment between CamDro3(https://www.ncbi.nlm.nih.gov/data-hub/genome/GCF_000803125.2/) and yahs3.chromosomes.fasta
 
-![dotplot](https://github.com/jelber2/genomes/blob/main/pics/map_yahs3_to_CamDro3.svg)
+[dotplot](https://github.com/jelber2/genomes/blob/main/pics/map_yahs3_to_CamDro3.svg)
