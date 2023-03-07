@@ -1,9 +1,9 @@
-# Simulation based on human chromosome 8 and decontaminated reads from ![fly](https://github.com/jelber2/genomes/blob/main/fly-genome.md)
+# Simulation based on human chromosome 8 and decontaminated reads from [fly](https://github.com/jelber2/genomes/blob/main/fly-genome.md)
 ```bash
 cd /nfs/scistore16/itgrp/jelbers/chr8
 ```
 
-## Step1 Simulate Chr8 reads with ![HI.SIM](https://github.com/thegenemyers/HI.SIM)
+## Step1 Simulate Chr8 reads with [HI.SIM](https://github.com/thegenemyers/HI.SIM)
 
 ### Get Telomere to Teleomere human chr8 assembly
 ```bash
