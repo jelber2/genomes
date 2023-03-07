@@ -1038,4 +1038,4 @@ test.purged  17687       762435740  0.0000   63.8 # estimated quality value
 Copy number spectra plot of 56-mers against the genome
 showing very high heterozygosity and good collapsing of haplotypes
 
-# BUT HOW ACCURATE ARE MERQURY.FK RESULTS WITHOUT ADDITIONAL DATA? SEE ![simulation.md](https://github.com/jelber2/genomes/edit/main/simulation.md)
+# BUT HOW ACCURATE ARE MERQURY.FK RESULTS WITHOUT ADDITIONAL DATA? SEE [simulation.md](https://github.com/jelber2/genomes/edit/main/simulation.md)
